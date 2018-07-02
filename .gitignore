@@ -1,1 +1,22 @@
+# word2vec model
 code/word2vec_model.bin
+
+# dependencies
+front/node_modules
+
+# testing
+front/coverage
+
+# production
+front/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+front/npm-debug.log*
+front/yarn-debug.log*
+front/yarn-error.log*
