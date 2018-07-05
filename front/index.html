@@ -102,6 +102,7 @@
 <script type="text/javascript">
 //Fixing iframe window.innerHeight0 in Safari
 document.body.clientHeight;
+
 var _isload_pointchart = false;
 var _isload_linechart = false;
 
@@ -133,6 +134,11 @@ var bar_data = [
 $(function() {
     render_pie_chart(pie_data);
     render_bar_chart(bar_data);
+    adjust_screen();
+
+    $(window).resize(function() {
+        adjust_screen();
+    });
 });
 
 $("#point_chart_modal").on("shown.bs.modal", function(e) {
@@ -148,6 +154,18 @@ $("#line_chart_modal").on("shown.bs.modal", function(e) {
         _isload_linechart = true;
     }
 });
+
+function adjust_screen() {
+    var window_width = window.innerWidth;
+    var window_height = window.innerHeight;
+    $("#point_chart_modal")
+        .find(".modal-dialog")
+        .css("width", window_width * 0.85 + "px");
+
+    $("#line_chart_modal")
+        .find(".modal-dialog")
+        .css("width", window_width * 0.85 + "px");
+}
 
 function render_pie_chart(data) {
     var dv = new DataView();
