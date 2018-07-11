@@ -50,14 +50,19 @@
 </div>
 
 <div id="menus">
-    <div class="bottom-menus" style="bottom:25px">
+    <div class="bottom-menus" style="bottom:90px">
         <button type="button" data-toggle="modal" data-target="#point_chart_modal">
             <img src="img/icon_pc.png" width="30px" height="30px"/>
         </button>
     </div>
-    <div class="bottom-menus" style="bottom:90px;">
+    <div class="bottom-menus" style="bottom:155px;">
         <button type="button" data-toggle="modal" data-target="#line_chart_modal">
             <img src="img/icon_lc.png" width="30px" height="30px"/>
+        </button>
+    </div>
+    <div class="bottom-menus" style="bottom:25px;">
+        <button type="button" data-toggle="modal" data-target="#heat_chart_modal">
+            <img src="img/color_grid.png" width="30px" height="30px"/>
         </button>
     </div>
 <div>
@@ -93,6 +98,21 @@
       </div>
 </div>
 
+<!-- heat chart modal -->
+<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel2" id="heat_chart_modal">
+    <div class="modal-dialog" role="document" style="width: 1500px;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="LargeModalLabel2">Theme Silimilarities with Question</h4>
+          </div>
+          <div class="modal-body" width="1500px" height="1000px">
+            <div id="heat_chart_node"></div>
+          </div>
+        </div>
+      </div>
+</div>
+
 </body>
 </html>
 <script src='js/jquery-1.11.3.min.js'></script>
@@ -105,6 +125,7 @@ document.body.clientHeight;
 
 var _isload_pointchart = false;
 var _isload_linechart = false;
+var _isload_heatchart = false;
 
 var _DataSet = DataSet;
 var DataView = _DataSet.DataView;
@@ -132,10 +153,22 @@ var bar_data = [
 /////////////////////////////////
 
 $(function() {
-    render_pie_chart(pie_data);
-    render_bar_chart(bar_data);
-    adjust_screen();
+    //get init data
+    $.ajax({
+        type: "get",
+        url: "/api/init",
+        dataType: "json",
+        success: function(resp) {
+            render_pie_chart(resp.pie_chart_data);
+            render_bar_chart(resp.bar_chart_data);
+            adjust_screen();
+        },
+        error: function(resp) {
+            alert("Init Error !");
+        }
+    });
 
+    //event bindings
     $(window).resize(function() {
         adjust_screen();
     });
@@ -155,6 +188,13 @@ $("#line_chart_modal").on("shown.bs.modal", function(e) {
     }
 });
 
+$("#heat_chart_modal").on("shown.bs.modal", function(e) {
+    if (!_isload_heatchart) {
+        loading_heat_chart();
+        _isload_heaetchart = true;
+    }
+});
+
 function adjust_screen() {
     var window_width = window.innerWidth;
     var window_height = window.innerHeight;
@@ -165,6 +205,10 @@ function adjust_screen() {
     $("#line_chart_modal")
         .find(".modal-dialog")
         .css("width", window_width * 0.85 + "px");
+
+    $("#heat_chart_modal")
+        .find(".modal-dialog")
+        .css("width", window_width * 0.8 + "px");
 }
 
 function render_pie_chart(data) {
@@ -211,9 +255,22 @@ function render_pie_chart(data) {
             stroke: "#fff"
         });
 
-    pie_chart.on("plotclick", function(item) {
-        console.log(item);
+    pie_chart.on("plotclick", function(selected) {
+        console.log(selected);
+        var selected_theme = selected.data._origin.item;
+        $.ajax({
+            type: "get",
+            url: "/api/data/bar_chart",
+            dataType: "json",
+            success: function(resp) {
+                render_bar_chart(resp);
+            },
+            error: function(resp) {
+                alert("Internet Error !");
+            }
+        });
     });
+
     pie_chart.render();
 }
 
@@ -247,570 +304,150 @@ function render_bar_chart(data) {
 }
 
 function loading_lines_chart() {
-    var data = [
-        { num_cluster: "2", elobow: 7.0, SC_score: 3.9 },
-        { num_cluster: "3", elobow: 6.9, SC_score: 4.2 },
-        { num_cluster: "4", elobow: 9.5, SC_score: 5.7 },
-        { num_cluster: "5", elobow: 14.5, SC_score: 8.5 },
-        { num_cluster: "6", elobow: 18.4, SC_score: 11.9 },
-        { num_cluster: "7", elobow: 21.5, SC_score: 15.2 },
-        { num_cluster: "8", elobow: 25.2, SC_score: 17.0 },
-        { num_cluster: "9", elobow: 26.5, SC_score: 16.6 },
-        { num_cluster: "10", elobow: 23.3, SC_score: 14.2 },
-        { num_cluster: "11", elobow: 18.3, SC_score: 10.3 },
-        { num_cluster: "12", elobow: 13.9, SC_score: 6.6 },
-        { num_cluster: "13", elobow: 9.6, SC_score: 4.8 }
-    ];
+    $.ajax({
+        type: "get",
+        url: "/api/data/line_char",
+        dataType: "json",
+        success: function(resp) {
+            var data = resp;
+            var dv = new DataView();
+            dv.source(data).transform({
+                type: "fold",
+                fields: ["elobow", "SC_score"],
+                key: "method",
+                value: "score"
+            });
+            var chart = new G2.Chart({
+                container: "line_chart_node",
+                forceFit: true,
+                height: window.innerHeight * 0.85
+            });
+            chart.source(dv, {
+                num_cluster: {
+                    range: [0, 1]
+                }
+            });
+            chart.tooltip({
+                crosshairs: {
+                    type: "line"
+                }
+            });
+            chart.axis("score", {
+                label: {
+                    formatter: function formatter(val) {
+                        return val;
+                    }
+                }
+            });
+            chart
+                .line()
+                .position("num_cluster*score")
+                .color("method");
+            chart
+                .point()
+                .position("num_cluster*score")
+                .color("method")
+                .size(4)
+                .shape("circle")
+                .style({
+                    stroke: "#fff",
+                    lineWidth: 1
+                });
+            chart.render();
+        },
+        error: function(resp) {
+            alert("Internet Error !");
+        }
+    });
+}
 
-    var dv = new DataView();
-    dv.source(data).transform({
-        type: "fold",
-        fields: ["elobow", "SC_score"],
-        key: "method",
-        value: "score"
-    });
-    var chart = new G2.Chart({
-        container: "line_chart_node",
-        forceFit: true,
-        height: window.innerHeight * 0.85
-    });
-    chart.source(dv, {
-        num_cluster: {
-            range: [0, 1]
-        }
-    });
-    chart.tooltip({
-        crosshairs: {
-            type: "line"
-        }
-    });
-    chart.axis("score", {
-        label: {
-            formatter: function formatter(val) {
-                return val;
+function loading_heat_chart() {
+    $.ajax({
+        type: "get",
+        url: "/api/data/grid_chart",
+        dataType: "json",
+        success: function(resp) {
+            var grid_data = resp.similarity;
+            var lst_x = resp.themes;
+            var lst_y = resp.query_tokens;
+
+            var source = [];
+            for (var i = 0; i < grid_data.length; i++) {
+                var item = grid_data[i];
+                var obj = {};
+                obj.theme = item[0];
+                obj.token = item[1];
+                obj.similarity = item[2];
+                source.push(obj);
             }
+
+            var chart = new G2.Chart({
+                id: "heat_chart_node",
+                forceFit: true,
+                height: window.innerHeight * 0.83
+            });
+
+            chart.source(source, {
+                theme: {
+                    type: "cat",
+                    values: lst_x
+                },
+                token: {
+                    type: "cat",
+                    values: lst_y
+                }
+            });
+            chart.axis("theme", {
+                tickLine: null,
+                grid: {
+                    align: "center",
+                    lineStyle: {
+                        lineWidth: 1,
+                        lineDash: null,
+                        stroke: "#f0f0f0"
+                    }
+                }
+            });
+
+            chart.axis("token", {
+                title: null,
+                grid: {
+                    align: "center",
+                    lineStyle: {
+                        lineWidth: 1,
+                        lineDash: null,
+                        stroke: "#f0f0f0"
+                    },
+                    showFirstLine: true
+                }
+            });
+
+            chart
+                .polygon()
+                .position("theme*token")
+                .color("similarity", "#BAE7FF-#1890FF-#0050B3")
+                .label("similarity", {
+                    offset: -2,
+                    textStyle: {
+                        fill: "#fff",
+                        shadowBlur: 2,
+                        shadowColor: "rgba(0, 0, 0, .45)"
+                    }
+                })
+                .style({
+                    lineWidth: 1,
+                    stroke: "#fff"
+                });
+            chart.render();
+        },
+        error: function(resp) {
+            alert("Internet Error !");
         }
     });
-    chart
-        .line()
-        .position("num_cluster*score")
-        .color("method");
-    chart
-        .point()
-        .position("num_cluster*score")
-        .color("method")
-        .size(4)
-        .shape("circle")
-        .style({
-            stroke: "#fff",
-            lineWidth: 1
-        });
-    chart.render();
 }
 
 function loading_points_chart() {
     var point_data = [
-        { theme: "theme1", token: "word", x: 167.5, y: 59 },
-        { theme: "theme1", token: "word", x: 159.5, y: 49.2 },
-        { theme: "theme1", token: "word", x: 157, y: 63 },
-        { theme: "theme1", token: "word", x: 155.8, y: 53.6 },
-        { theme: "theme1", token: "word", x: 170, y: 59 },
-        { theme: "theme1", token: "word", x: 159.1, y: 47.6 },
-        { theme: "theme1", token: "word", x: 166, y: 69.8 },
-        { theme: "theme1", token: "word", x: 176.2, y: 66.8 },
-        { theme: "theme1", token: "word", x: 160.2, y: 75.2 },
-        { theme: "theme1", token: "word", x: 172.5, y: 55.2 },
-        { theme: "theme1", token: "word", x: 170.9, y: 54.2 },
-        { theme: "theme1", token: "word", x: 172.9, y: 62.5 },
-        { theme: "theme1", token: "word", x: 153.4, y: 42 },
-        { theme: "theme1", token: "word", x: 160, y: 50 },
-        { theme: "female", token: "word", x: 147.2, y: 49.8 },
-        { theme: "female", token: "word", x: 168.2, y: 49.2 },
-        { theme: "female", token: "word", x: 175, y: 73.2 },
-        { theme: "female", token: "word", x: 157, y: 47.8 },
-        { theme: "theme1", token: "word", x: 167.6, y: 68.8 },
-        { theme: "female", token: "word", x: 159.5, y: 50.6 },
-        { theme: "female", token: "word", x: 175, y: 82.5 },
-        { theme: "theme1", token: "word", x: 166.8, y: 57.2 },
-        { theme: "female", token: "word", x: 176.5, y: 87.8 },
-        { theme: "female", token: "word", x: 170.2, y: 72.8 },
-        { theme: "female", token: "word", x: 174, y: 54.5 },
-        { theme: "female", token: "word", x: 173, y: 59.8 },
-        { theme: "female", token: "word", x: 179.9, y: 67.3 },
-        { theme: "theme1", token: "word", x: 170.5, y: 67.8 },
-        { theme: "female", token: "word", x: 160, y: 47 },
-        { theme: "female", token: "word", x: 154.4, y: 46.2 },
-        { theme: "female", token: "word", x: 162, y: 55 },
-        { theme: "female", token: "word", x: 176.5, y: 83 },
-        { theme: "female", token: "word", x: 160, y: 54.4 },
-        { theme: "female", token: "word", x: 152, y: 45.8 },
-        { theme: "female", token: "word", x: 162.1, y: 53.6 },
-        { theme: "female", token: "word", x: 170, y: 73.2 },
-        { theme: "theme1", token: "word", x: 160.2, y: 52.1 },
-        { theme: "theme1", token: "word", x: 161.3, y: 67.9 },
-        { theme: "theme1", token: "word", x: 166.4, y: 56.6 },
-        { theme: "theme1", token: "word", x: 168.9, y: 62.3 },
-        { theme: "theme1", token: "word", x: 163.8, y: 58.5 },
-        { theme: "female", token: "word", x: 167.6, y: 54.5 },
-        { theme: "female", token: "word", x: 160, y: 50.2 },
-        { theme: "female", token: "word", x: 161.3, y: 60.3 },
-        { theme: "female", token: "word", x: 167.6, y: 58.3 },
-        { theme: "female", token: "word", x: 165.1, y: 56.2 },
-        { theme: "female", token: "word", x: 160, y: 50.2 },
-        { theme: "female", token: "word", x: 170, y: 72.9 },
-        { theme: "female", token: "word", x: 157.5, y: 59.8 },
-        { theme: "female", token: "word", x: 167.6, y: 61 },
-        { theme: "female", token: "word", x: 160.7, y: 69.1 },
-        { theme: "female", token: "word", x: 163.2, y: 55.9 },
-        { theme: "female", token: "word", x: 152.4, y: 46.5 },
-        { theme: "female", token: "word", x: 157.5, y: 54.3 },
-        { theme: "female", token: "word", x: 168.3, y: 54.8 },
-        { theme: "theme1", token: "word", x: 180.3, y: 60.7 },
-        { theme: "theme1", token: "word", x: 165.5, y: 60 },
-        { theme: "theme1", token: "word", x: 165, y: 62 },
-        { theme: "female", token: "word", x: 164.5, y: 60.3 },
-        { theme: "theme1", token: "word", x: 156, y: 52.7 },
-        { theme: "female", token: "word", x: 160, y: 74.3 },
-        { theme: "female", token: "word", x: 163, y: 62 },
-        { theme: "female", token: "word", x: 165.7, y: 73.1 },
-        { theme: "female", token: "word", x: 161, y: 80 },
-        { theme: "female", token: "word", x: 162, y: 54.7 },
-        { theme: "female", token: "word", x: 166, y: 53.2 },
-        { theme: "female", token: "word", x: 174, y: 75.7 },
-        { theme: "female", token: "word", x: 172.7, y: 61.1 },
-        { theme: "female", token: "word", x: 167.6, y: 55.7 },
-        { theme: "female", token: "word", x: 151.1, y: 48.7 },
-        { theme: "female", token: "word", x: 164.5, y: 52.3 },
-        { theme: "female", token: "word", x: 163.5, y: 50 },
-        { theme: "female", token: "word", x: 152, y: 59.3 },
-        { theme: "female", token: "word", x: 169, y: 62.5 },
-        { theme: "female", token: "word", x: 164, y: 55.7 },
-        { theme: "female", token: "word", x: 161.2, y: 54.8 },
-        { theme: "female", token: "word", x: 155, y: 45.9 },
-        { theme: "female", token: "word", x: 170, y: 70.6 },
-        { theme: "female", token: "word", x: 176.2, y: 67.2 },
-        { theme: "female", token: "word", x: 170, y: 69.4 },
-        { theme: "female", token: "word", x: 162.5, y: 58.2 },
-        { theme: "female", token: "word", x: 170.3, y: 64.8 },
-        { theme: "female", token: "word", x: 164.1, y: 71.6 },
-        { theme: "female", token: "word", x: 169.5, y: 52.8 },
-        { theme: "female", token: "word", x: 163.2, y: 59.8 },
-        { theme: "female", token: "word", x: 154.5, y: 49 },
-        { theme: "female", token: "word", x: 159.8, y: 50 },
-        { theme: "female", token: "word", x: 173.2, y: 69.2 },
-        { theme: "female", token: "word", x: 170, y: 55.9 },
-        { theme: "female", token: "word", x: 161.4, y: 63.4 },
-        { theme: "female", token: "word", x: 169, y: 58.2 },
-        { theme: "female", token: "word", x: 166.2, y: 58.6 },
-        { theme: "female", token: "word", x: 159.4, y: 45.7 },
-        { theme: "female", token: "word", x: 162.5, y: 52.2 },
-        { theme: "female", token: "word", x: 159, y: 48.6 },
-        { theme: "female", token: "word", x: 162.8, y: 57.8 },
-        { theme: "female", token: "word", x: 159, y: 55.6 },
-        { theme: "female", token: "word", x: 179.8, y: 66.8 },
-        { theme: "female", token: "word", x: 162.9, y: 59.4 },
-        { theme: "female", token: "word", x: 161, y: 53.6 },
-        { theme: "female", token: "word", x: 151.1, y: 73.2 },
-        { theme: "female", token: "word", x: 168.2, y: 53.4 },
-        { theme: "female", token: "word", x: 168.9, y: 69 },
-        { theme: "female", token: "word", x: 173.2, y: 58.4 },
-        { theme: "female", token: "word", x: 171.8, y: 56.2 },
-        { theme: "female", token: "word", x: 178, y: 70.6 },
-        { theme: "female", token: "word", x: 164.3, y: 59.8 },
-        { theme: "female", token: "word", x: 163, y: 72 },
-        { theme: "female", token: "word", x: 168.5, y: 65.2 },
-        { theme: "female", token: "word", x: 166.8, y: 56.6 },
-        { theme: "female", token: "word", x: 172.7, y: 105.2 },
-        { theme: "female", token: "word", x: 163.5, y: 51.8 },
-        { theme: "female", token: "word", x: 169.4, y: 63.4 },
-        { theme: "female", token: "word", x: 167.8, y: 59 },
-        { theme: "female", token: "word", x: 159.5, y: 47.6 },
-        { theme: "female", token: "word", x: 167.6, y: 63 },
-        { theme: "female", token: "word", x: 161.2, y: 55.2 },
-        { theme: "female", token: "word", x: 160, y: 45 },
-        { theme: "female", token: "word", x: 163.2, y: 54 },
-        { theme: "female", token: "word", x: 162.2, y: 50.2 },
-        { theme: "female", token: "word", x: 161.3, y: 60.2 },
-        { theme: "female", token: "word", x: 149.5, y: 44.8 },
-        { theme: "female", token: "word", x: 157.5, y: 58.8 },
-        { theme: "female", token: "word", x: 163.2, y: 56.4 },
-        { theme: "female", token: "word", x: 172.7, y: 62 },
-        { theme: "female", token: "word", x: 155, y: 49.2 },
-        { theme: "female", token: "word", x: 156.5, y: 67.2 },
-        { theme: "female", token: "word", x: 164, y: 53.8 },
-        { theme: "female", token: "word", x: 160.9, y: 54.4 },
-        { theme: "female", token: "word", x: 162.8, y: 58 },
-        { theme: "female", token: "word", x: 167, y: 59.8 },
-        { theme: "female", token: "word", x: 160, y: 54.8 },
-        { theme: "female", token: "word", x: 160, y: 43.2 },
-        { theme: "female", token: "word", x: 168.9, y: 60.5 },
-        { theme: "female", token: "word", x: 158.2, y: 46.4 },
-        { theme: "female", token: "word", x: 156, y: 64.4 },
-        { theme: "female", token: "word", x: 160, y: 48.8 },
-        { theme: "female", token: "word", x: 167.1, y: 62.2 },
-        { theme: "female", token: "word", x: 158, y: 55.5 },
-        { theme: "female", token: "word", x: 167.6, y: 57.8 },
-        { theme: "female", token: "word", x: 156, y: 54.6 },
-        { theme: "female", token: "word", x: 162.1, y: 59.2 },
-        { theme: "female", token: "word", x: 173.4, y: 52.7 },
-        { theme: "female", token: "word", x: 159.8, y: 53.2 },
-        { theme: "female", token: "word", x: 170.5, y: 64.5 },
-        { theme: "female", token: "word", x: 159.2, y: 51.8 },
-        { theme: "female", token: "word", x: 157.5, y: 56 },
-        { theme: "female", token: "word", x: 161.3, y: 63.6 },
-        { theme: "female", token: "word", x: 162.6, y: 63.2 },
-        { theme: "female", token: "word", x: 160, y: 59.5 },
-        { theme: "female", token: "word", x: 168.9, y: 56.8 },
-        { theme: "female", token: "word", x: 165.1, y: 64.1 },
-        { theme: "female", token: "word", x: 162.6, y: 50 },
-        { theme: "female", token: "word", x: 165.1, y: 72.3 },
-        { theme: "female", token: "word", x: 166.4, y: 55 },
-        { theme: "female", token: "word", x: 160, y: 55.9 },
-        { theme: "female", token: "word", x: 152.4, y: 60.4 },
-        { theme: "female", token: "word", x: 170.2, y: 69.1 },
-        { theme: "female", token: "word", x: 162.6, y: 84.5 },
-        { theme: "female", token: "word", x: 170.2, y: 55.9 },
-        { theme: "female", token: "word", x: 158.8, y: 55.5 },
-        { theme: "female", token: "word", x: 172.7, y: 69.5 },
-        { theme: "female", token: "word", x: 167.6, y: 76.4 },
-        { theme: "female", token: "word", x: 162.6, y: 61.4 },
-        { theme: "female", token: "word", x: 167.6, y: 65.9 },
-        { theme: "female", token: "word", x: 156.2, y: 58.6 },
-        { theme: "female", token: "word", x: 175.2, y: 66.8 },
-        { theme: "female", token: "word", x: 172.1, y: 56.6 },
-        { theme: "female", token: "word", x: 162.6, y: 58.6 },
-        { theme: "female", token: "word", x: 160, y: 55.9 },
-        { theme: "female", token: "word", x: 165.1, y: 59.1 },
-        { theme: "female", token: "word", x: 182.9, y: 81.8 },
-        { theme: "female", token: "word", x: 166.4, y: 70.7 },
-        { theme: "female", token: "word", x: 165.1, y: 56.8 },
-        { theme: "female", token: "word", x: 177.8, y: 60 },
-        { theme: "female", token: "word", x: 165.1, y: 58.2 },
-        { theme: "female", token: "word", x: 175.3, y: 72.7 },
-        { theme: "female", token: "word", x: 154.9, y: 54.1 },
-        { theme: "female", token: "word", x: 158.8, y: 49.1 },
-        { theme: "female", token: "word", x: 172.7, y: 75.9 },
-        { theme: "female", token: "word", x: 168.9, y: 55 },
-        { theme: "female", token: "word", x: 161.3, y: 57.3 },
-        { theme: "female", token: "word", x: 167.6, y: 55 },
-        { theme: "female", token: "word", x: 165.1, y: 65.5 },
-        { theme: "female", token: "word", x: 175.3, y: 65.5 },
-        { theme: "female", token: "word", x: 157.5, y: 48.6 },
-        { theme: "female", token: "word", x: 163.8, y: 58.6 },
-        { theme: "female", token: "word", x: 167.6, y: 63.6 },
-        { theme: "female", token: "word", x: 165.1, y: 55.2 },
-        { theme: "female", token: "word", x: 165.1, y: 62.7 },
-        { theme: "female", token: "word", x: 168.9, y: 56.6 },
-        { theme: "female", token: "word", x: 162.6, y: 53.9 },
-        { theme: "female", token: "word", x: 164.5, y: 63.2 },
-        { theme: "female", token: "word", x: 176.5, y: 73.6 },
-        { theme: "female", token: "word", x: 168.9, y: 62 },
-        { theme: "female", token: "word", x: 175.3, y: 63.6 },
-        { theme: "female", token: "word", x: 159.4, y: 53.2 },
-        { theme: "female", token: "word", x: 160, y: 53.4 },
-        { theme: "female", token: "word", x: 170.2, y: 55 },
-        { theme: "female", token: "word", x: 162.6, y: 70.5 },
-        { theme: "female", token: "word", x: 167.6, y: 54.5 },
-        { theme: "female", token: "word", x: 162.6, y: 54.5 },
-        { theme: "female", token: "word", x: 160.7, y: 55.9 },
-        { theme: "female", token: "word", x: 160, y: 59 },
-        { theme: "female", token: "word", x: 157.5, y: 63.6 },
-        { theme: "female", token: "word", x: 162.6, y: 54.5 },
-        { theme: "female", token: "word", x: 152.4, y: 47.3 },
-        { theme: "female", token: "word", x: 170.2, y: 67.7 },
-        { theme: "female", token: "word", x: 165.1, y: 80.9 },
-        { theme: "female", token: "word", x: 172.7, y: 70.5 },
-        { theme: "female", token: "word", x: 165.1, y: 60.9 },
-        { theme: "female", token: "word", x: 170.2, y: 63.6 },
-        { theme: "female", token: "word", x: 170.2, y: 54.5 },
-        { theme: "female", token: "word", x: 170.2, y: 59.1 },
-        { theme: "female", token: "word", x: 161.3, y: 70.5 },
-        { theme: "female", token: "word", x: 167.6, y: 52.7 },
-        { theme: "female", token: "word", x: 167.6, y: 62.7 },
-        { theme: "female", token: "word", x: 165.1, y: 86.3 },
-        { theme: "female", token: "word", x: 162.6, y: 66.4 },
-        { theme: "female", token: "word", x: 152.4, y: 67.3 },
-        { theme: "female", token: "word", x: 168.9, y: 63 },
-        { theme: "female", token: "word", x: 170.2, y: 73.6 },
-        { theme: "female", token: "word", x: 175.2, y: 62.3 },
-        { theme: "female", token: "word", x: 175.2, y: 57.7 },
-        { theme: "female", token: "word", x: 160, y: 55.4 },
-        { theme: "female", token: "word", x: 165.1, y: 104.1 },
-        { theme: "female", token: "word", x: 174, y: 55.5 },
-        { theme: "female", token: "word", x: 170.2, y: 77.3 },
-        { theme: "female", token: "word", x: 160, y: 80.5 },
-        { theme: "female", token: "word", x: 167.6, y: 64.5 },
-        { theme: "female", token: "word", x: 167.6, y: 72.3 },
-        { theme: "female", token: "word", x: 167.6, y: 61.4 },
-        { theme: "female", token: "word", x: 154.9, y: 58.2 },
-        { theme: "female", token: "word", x: 162.6, y: 81.8 },
-        { theme: "female", token: "word", x: 175.3, y: 63.6 },
-        { theme: "female", token: "word", x: 171.4, y: 53.4 },
-        { theme: "female", token: "word", x: 157.5, y: 54.5 },
-        { theme: "female", token: "word", x: 165.1, y: 53.6 },
-        { theme: "female", token: "word", x: 160, y: 60 },
-        { theme: "female", token: "word", x: 174, y: 73.6 },
-        { theme: "female", token: "word", x: 162.6, y: 61.4 },
-        { theme: "female", token: "word", x: 174, y: 55.5 },
-        { theme: "female", token: "word", x: 162.6, y: 63.6 },
-        { theme: "female", token: "word", x: 161.3, y: 60.9 },
-        { theme: "female", token: "word", x: 156.2, y: 60 },
-        { theme: "female", token: "word", x: 149.9, y: 46.8 },
-        { theme: "female", token: "word", x: 169.5, y: 57.3 },
-        { theme: "female", token: "word", x: 160, y: 64.1 },
-        { theme: "female", token: "word", x: 175.3, y: 63.6 },
-        { theme: "female", token: "word", x: 169.5, y: 67.3 },
-        { theme: "female", token: "word", x: 160, y: 75.5 },
-        { theme: "female", token: "word", x: 172.7, y: 68.2 },
-        { theme: "female", token: "word", x: 162.6, y: 61.4 },
-        { theme: "female", token: "word", x: 157.5, y: 76.8 },
-        { theme: "female", token: "word", x: 176.5, y: 71.8 },
-        { theme: "female", token: "word", x: 164.4, y: 55.5 },
-        { theme: "female", token: "word", x: 160.7, y: 48.6 },
-        { theme: "female", token: "word", x: 174, y: 66.4 },
-        { theme: "female", token: "word", x: 163.8, y: 67.3 },
-        { theme: "male", token: "word", x: 174, y: 65.6 },
-        { theme: "male", token: "word", x: 175.3, y: 71.8 },
-        { theme: "male", token: "word", x: 193.5, y: 80.7 },
-        { theme: "male", token: "word", x: 186.5, y: 72.6 },
-        { theme: "male", token: "word", x: 187.2, y: 78.8 },
-        { theme: "male", token: "word", x: 181.5, y: 74.8 },
-        { theme: "male", token: "word", x: 184, y: 86.4 },
-        { theme: "male", token: "word", x: 184.5, y: 78.4 },
-        { theme: "male", token: "word", x: 175, y: 62 },
-        { theme: "male", token: "word", x: 184, y: 81.6 },
-        { theme: "male", token: "word", x: 180, y: 76.6 },
-        { theme: "male", token: "word", x: 177.8, y: 83.6 },
-        { theme: "male", token: "word", x: 192, y: 90 },
-        { theme: "male", token: "word", x: 176, y: 74.6 },
-        { theme: "male", token: "word", x: 174, y: 71 },
-        { theme: "male", token: "word", x: 184, y: 79.6 },
-        { theme: "male", token: "word", x: 192.7, y: 93.8 },
-        { theme: "male", token: "word", x: 171.5, y: 70 },
-        { theme: "male", token: "word", x: 173, y: 72.4 },
-        { theme: "male", token: "word", x: 176, y: 85.9 },
-        { theme: "male", token: "word", x: 176, y: 78.8 },
-        { theme: "male", token: "word", x: 180.5, y: 77.8 },
-        { theme: "male", token: "word", x: 172.7, y: 66.2 },
-        { theme: "male", token: "word", x: 176, y: 86.4 },
-        { theme: "male", token: "word", x: 173.5, y: 81.8 },
-        { theme: "male", token: "word", x: 178, y: 89.6 },
-        { theme: "male", token: "word", x: 180.3, y: 82.8 },
-        { theme: "male", token: "word", x: 180.3, y: 76.4 },
-        { theme: "male", token: "word", x: 164.5, y: 63.2 },
-        { theme: "male", token: "word", x: 173, y: 60.9 },
-        { theme: "male", token: "word", x: 183.5, y: 74.8 },
-        { theme: "male", token: "word", x: 175.5, y: 70 },
-        { theme: "male", token: "word", x: 188, y: 72.4 },
-        { theme: "male", token: "word", x: 189.2, y: 84.1 },
-        { theme: "male", token: "word", x: 172.8, y: 69.1 },
-        { theme: "male", token: "word", x: 170, y: 59.5 },
-        { theme: "male", token: "word", x: 182, y: 67.2 },
-        { theme: "male", token: "word", x: 170, y: 61.3 },
-        { theme: "male", token: "word", x: 177.8, y: 68.6 },
-        { theme: "male", token: "word", x: 184.2, y: 80.1 },
-        { theme: "male", token: "word", x: 186.7, y: 87.8 },
-        { theme: "male", token: "word", x: 171.4, y: 84.7 },
-        { theme: "male", token: "word", x: 172.7, y: 73.4 },
-        { theme: "male", token: "word", x: 175.3, y: 72.1 },
-        { theme: "male", token: "word", x: 180.3, y: 82.6 },
-        { theme: "male", token: "word", x: 182.9, y: 88.7 },
-        { theme: "male", token: "word", x: 188, y: 84.1 },
-        { theme: "male", token: "word", x: 177.2, y: 94.1 },
-        { theme: "male", token: "word", x: 172.1, y: 74.9 },
-        { theme: "male", token: "word", x: 167, y: 59.1 },
-        { theme: "male", token: "word", x: 169.5, y: 75.6 },
-        { theme: "male", token: "word", x: 174, y: 86.2 },
-        { theme: "male", token: "word", x: 172.7, y: 75.3 },
-        { theme: "male", token: "word", x: 182.2, y: 87.1 },
-        { theme: "male", token: "word", x: 164.1, y: 55.2 },
-        { theme: "male", token: "word", x: 163, y: 57 },
-        { theme: "male", token: "word", x: 171.5, y: 61.4 },
-        { theme: "male", token: "word", x: 184.2, y: 76.8 },
-        { theme: "male", token: "word", x: 174, y: 86.8 },
-        { theme: "male", token: "word", x: 174, y: 72.2 },
-        { theme: "male", token: "word", x: 177, y: 71.6 },
-        { theme: "male", token: "word", x: 186, y: 84.8 },
-        { theme: "male", token: "word", x: 167, y: 68.2 },
-        { theme: "male", token: "word", x: 171.8, y: 66.1 },
-        { theme: "male", token: "word", x: 182, y: 72 },
-        { theme: "male", token: "word", x: 167, y: 64.6 },
-        { theme: "male", token: "word", x: 177.8, y: 74.8 },
-        { theme: "male", token: "word", x: 164.5, y: 70 },
-        { theme: "male", token: "word", x: 192, y: 101.6 },
-        { theme: "male", token: "word", x: 175.5, y: 63.2 },
-        { theme: "male", token: "word", x: 171.2, y: 79.1 },
-        { theme: "male", token: "word", x: 181.6, y: 78.9 },
-        { theme: "male", token: "word", x: 167.4, y: 67.7 },
-        { theme: "male", token: "word", x: 181.1, y: 66 },
-        { theme: "male", token: "word", x: 177, y: 68.2 },
-        { theme: "male", token: "word", x: 174.5, y: 63.9 },
-        { theme: "male", token: "word", x: 177.5, y: 72 },
-        { theme: "male", token: "word", x: 170.5, y: 56.8 },
-        { theme: "male", token: "word", x: 182.4, y: 74.5 },
-        { theme: "male", token: "word", x: 197.1, y: 90.9 },
-        { theme: "male", token: "word", x: 180.1, y: 93 },
-        { theme: "male", token: "word", x: 175.5, y: 80.9 },
-        { theme: "male", token: "word", x: 180.6, y: 72.7 },
-        { theme: "male", token: "word", x: 184.4, y: 68 },
-        { theme: "male", token: "word", x: 175.5, y: 70.9 },
-        { theme: "male", token: "word", x: 180.6, y: 72.5 },
-        { theme: "male", token: "word", x: 177, y: 72.5 },
-        { theme: "male", token: "word", x: 177.1, y: 83.4 },
-        { theme: "male", token: "word", x: 181.6, y: 75.5 },
-        { theme: "male", token: "word", x: 176.5, y: 73 },
-        { theme: "male", token: "word", x: 175, y: 70.2 },
-        { theme: "male", token: "word", x: 174, y: 73.4 },
-        { theme: "male", token: "word", x: 165.1, y: 70.5 },
-        { theme: "male", token: "word", x: 177, y: 68.9 },
-        { theme: "male", token: "word", x: 192, y: 102.3 },
-        { theme: "male", token: "word", x: 176.5, y: 68.4 },
-        { theme: "male", token: "word", x: 169.4, y: 65.9 },
-        { theme: "male", token: "word", x: 182.1, y: 75.7 },
-        { theme: "male", token: "word", x: 179.8, y: 84.5 },
-        { theme: "male", token: "word", x: 175.3, y: 87.7 },
-        { theme: "male", token: "word", x: 184.9, y: 86.4 },
-        { theme: "male", token: "word", x: 177.3, y: 73.2 },
-        { theme: "male", token: "word", x: 167.4, y: 53.9 },
-        { theme: "male", token: "word", x: 178.1, y: 72 },
-        { theme: "male", token: "word", x: 168.9, y: 55.5 },
-        { theme: "male", token: "word", x: 157.2, y: 58.4 },
-        { theme: "male", token: "word", x: 180.3, y: 83.2 },
-        { theme: "male", token: "word", x: 170.2, y: 72.7 },
-        { theme: "male", token: "word", x: 177.8, y: 64.1 },
-        { theme: "male", token: "word", x: 172.7, y: 72.3 },
-        { theme: "male", token: "word", x: 165.1, y: 65 },
-        { theme: "male", token: "word", x: 186.7, y: 86.4 },
-        { theme: "male", token: "word", x: 165.1, y: 65 },
-        { theme: "male", token: "word", x: 174, y: 88.6 },
-        { theme: "male", token: "word", x: 175.3, y: 84.1 },
-        { theme: "male", token: "word", x: 185.4, y: 66.8 },
-        { theme: "male", token: "word", x: 177.8, y: 75.5 },
-        { theme: "male", token: "word", x: 180.3, y: 93.2 },
-        { theme: "male", token: "word", x: 180.3, y: 82.7 },
-        { theme: "male", token: "word", x: 177.8, y: 58 },
-        { theme: "male", token: "word", x: 177.8, y: 79.5 },
-        { theme: "male", token: "word", x: 177.8, y: 78.6 },
-        { theme: "male", token: "word", x: 177.8, y: 71.8 },
-        { theme: "male", token: "word", x: 177.8, y: 116.4 },
-        { theme: "male", token: "word", x: 163.8, y: 72.2 },
-        { theme: "male", token: "word", x: 188, y: 83.6 },
-        { theme: "male", token: "word", x: 198.1, y: 85.5 },
-        { theme: "male", token: "word", x: 175.3, y: 90.9 },
-        { theme: "male", token: "word", x: 166.4, y: 85.9 },
-        { theme: "male", token: "word", x: 190.5, y: 89.1 },
-        { theme: "male", token: "word", x: 166.4, y: 75 },
-        { theme: "male", token: "word", x: 177.8, y: 77.7 },
-        { theme: "male", token: "word", x: 179.7, y: 86.4 },
-        { theme: "male", token: "word", x: 172.7, y: 90.9 },
-        { theme: "male", token: "word", x: 190.5, y: 73.6 },
-        { theme: "male", token: "word", x: 185.4, y: 76.4 },
-        { theme: "male", token: "word", x: 168.9, y: 69.1 },
-        { theme: "male", token: "word", x: 167.6, y: 84.5 },
-        { theme: "male", token: "word", x: 175.3, y: 64.5 },
-        { theme: "male", token: "word", x: 170.2, y: 69.1 },
-        { theme: "male", token: "word", x: 190.5, y: 108.6 },
-        { theme: "male", token: "word", x: 177.8, y: 86.4 },
-        { theme: "male", token: "word", x: 190.5, y: 80.9 },
-        { theme: "male", token: "word", x: 177.8, y: 87.7 },
-        { theme: "male", token: "word", x: 184.2, y: 94.5 },
-        { theme: "male", token: "word", x: 176.5, y: 80.2 },
-        { theme: "male", token: "word", x: 177.8, y: 72 },
-        { theme: "male", token: "word", x: 180.3, y: 71.4 },
-        { theme: "male", token: "word", x: 171.4, y: 72.7 },
-        { theme: "male", token: "word", x: 172.7, y: 84.1 },
-        { theme: "male", token: "word", x: 172.7, y: 76.8 },
-        { theme: "male", token: "word", x: 177.8, y: 63.6 },
-        { theme: "male", token: "word", x: 177.8, y: 80.9 },
-        { theme: "male", token: "word", x: 182.9, y: 80.9 },
-        { theme: "male", token: "word", x: 170.2, y: 85.5 },
-        { theme: "male", token: "word", x: 167.6, y: 68.6 },
-        { theme: "male", token: "word", x: 175.3, y: 67.7 },
-        { theme: "male", token: "word", x: 165.1, y: 66.4 },
-        { theme: "male", token: "word", x: 185.4, y: 102.3 },
-        { theme: "male", token: "word", x: 181.6, y: 70.5 },
-        { theme: "male", token: "word", x: 172.7, y: 95.9 },
-        { theme: "male", token: "word", x: 190.5, y: 84.1 },
-        { theme: "male", token: "word", x: 179.1, y: 87.3 },
-        { theme: "male", token: "word", x: 175.3, y: 71.8 },
-        { theme: "male", token: "word", x: 170.2, y: 65.9 },
-        { theme: "male", token: "word", x: 193, y: 95.9 },
-        { theme: "male", token: "word", x: 171.4, y: 91.4 },
-        { theme: "male", token: "word", x: 177.8, y: 81.8 },
-        { theme: "male", token: "word", x: 177.8, y: 96.8 },
-        { theme: "male", token: "word", x: 167.6, y: 69.1 },
-        { theme: "male", token: "word", x: 167.6, y: 82.7 },
-        { theme: "male", token: "word", x: 180.3, y: 75.5 },
-        { theme: "male", token: "word", x: 182.9, y: 79.5 },
-        { theme: "male", token: "word", x: 176.5, y: 73.6 },
-        { theme: "male", token: "word", x: 186.7, y: 91.8 },
-        { theme: "male", token: "word", x: 188, y: 84.1 },
-        { theme: "male", token: "word", x: 188, y: 85.9 },
-        { theme: "male", token: "word", x: 177.8, y: 81.8 },
-        { theme: "male", token: "word", x: 174, y: 82.5 },
-        { theme: "male", token: "word", x: 177.8, y: 80.5 },
-        { theme: "male", token: "word", x: 171.4, y: 70 },
-        { theme: "male", token: "word", x: 185.4, y: 81.8 },
-        { theme: "male", token: "word", x: 185.4, y: 84.1 },
-        { theme: "male", token: "word", x: 188, y: 90.5 },
-        { theme: "male", token: "word", x: 188, y: 91.4 },
-        { theme: "male", token: "word", x: 182.9, y: 89.1 },
-        { theme: "male", token: "word", x: 176.5, y: 85 },
-        { theme: "male", token: "word", x: 175.3, y: 69.1 },
-        { theme: "male", token: "word", x: 175.3, y: 73.6 },
-        { theme: "male", token: "word", x: 188, y: 80.5 },
-        { theme: "male", token: "word", x: 188, y: 82.7 },
-        { theme: "male", token: "word", x: 175.3, y: 86.4 },
-        { theme: "male", token: "word", x: 170.5, y: 67.7 },
-        { theme: "male", token: "word", x: 179.1, y: 92.7 },
-        { theme: "male", token: "word", x: 177.8, y: 93.6 },
-        { theme: "male", token: "word", x: 175.3, y: 70.9 },
-        { theme: "male", token: "word", x: 182.9, y: 75 },
-        { theme: "male", token: "word", x: 170.8, y: 93.2 },
-        { theme: "male", token: "word", x: 188, y: 93.2 },
-        { theme: "male", token: "word", x: 180.3, y: 77.7 },
-        { theme: "male", token: "word", x: 177.8, y: 61.4 },
-        { theme: "male", token: "word", x: 185.4, y: 94.1 },
-        { theme: "male", token: "word", x: 168.9, y: 75 },
-        { theme: "male", token: "word", x: 185.4, y: 83.6 },
-        { theme: "male", token: "word", x: 180.3, y: 85.5 },
-        { theme: "male", token: "word", x: 174, y: 73.9 },
-        { theme: "male", token: "word", x: 167.6, y: 66.8 },
-        { theme: "male", token: "word", x: 182.9, y: 87.3 },
-        { theme: "male", token: "word", x: 160, y: 72.3 },
-        { theme: "male", token: "word", x: 180.3, y: 88.6 },
-        { theme: "male", token: "word", x: 167.6, y: 75.5 },
-        { theme: "male", token: "word", x: 186.7, y: 101.4 },
-        { theme: "male", token: "word", x: 175.3, y: 91.1 },
-        { theme: "male", token: "word", x: 175.3, y: 67.3 },
-        { theme: "male", token: "word", x: 175.9, y: 77.7 },
-        { theme: "male", token: "word", x: 175.3, y: 81.8 },
-        { theme: "male", token: "word", x: 179.1, y: 75.5 },
-        { theme: "male", token: "word", x: 181.6, y: 84.5 },
-        { theme: "male", token: "word", x: 177.8, y: 76.6 },
-        { theme: "male", token: "word", x: 182.9, y: 85 },
-        { theme: "male", token: "word", x: 177.8, y: 102.5 },
-        { theme: "male", token: "word", x: 184.2, y: 77.3 },
-        { theme: "male", token: "word", x: 179.1, y: 71.8 },
-        { theme: "male", token: "word", x: 176.5, y: 87.9 },
-        { theme: "male", token: "word", x: 188, y: 94.3 },
-        { theme: "male", token: "word", x: 174, y: 70.9 },
-        { theme: "male", token: "word", x: 167.6, y: 64.5 },
-        { theme: "male", token: "word", x: 170.2, y: 77.3 },
-        { theme: "male", token: "word", x: 167.6, y: 72.3 },
-        { theme: "male", token: "word", x: 188, y: 87.3 },
-        { theme: "male", token: "word", x: 174, y: 80 },
-        { theme: "male", token: "word", x: 176.5, y: 82.3 },
-        { theme: "male", token: "word", x: 180.3, y: 73.6 },
-        { theme: "male", token: "word", x: 167.6, y: 74.1 },
-        { theme: "male", token: "word", x: 188, y: 85.9 },
-        { theme: "male", token: "word", x: 180.3, y: 73.2 },
-        { theme: "male", token: "word", x: 167.6, y: 76.3 },
-        { theme: "male", token: "word", x: 183, y: 65.9 },
-        { theme: "male", token: "word", x: 183, y: 90.9 },
-        { theme: "male", token: "word", x: 179.1, y: 89.1 },
-        { theme: "male", token: "word", x: 170.2, y: 62.3 },
-        { theme: "male", token: "word", x: 177.8, y: 82.7 },
         { theme: "male", token: "word", x: 179.1, y: 79.1 },
         { theme: "male", token: "word", x: 190.5, y: 98.2 },
         { theme: "male", token: "word", x: 177.8, y: 84.1 },

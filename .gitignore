@@ -1,6 +1,10 @@
 # word2vec model
 code/word2vec_model.bin
 
+# py compile file
+.pyc
+**/__pycache__/**
+
 # dependencies
 front/node_modules
 

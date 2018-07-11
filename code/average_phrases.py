@@ -8,22 +8,6 @@ def phrases2vec(phrase, quantizator_func):
         return 0
 
     word_lst = nltk.word_tokenize(phrase)
-    vectorSet = []
-    for aword in word_lst:
-        wordVector = quantizator_func(aword)
-        vectorSet.append(wordVector)
-
-    phrases2vec_value = np.divide(vectorSet,len(word_lst))
-    return phrases2vec_value
-
-
-
-def phrases2vec_new(phrase, quantizator_func):
-    if not isinstance(quantizator_func, FunctionType):
-        print("ERROR: quantizator_func is not a function object")
-        return 0
-
-    word_lst = nltk.word_tokenize(phrase)
     vector_lst = []
     for word in word_lst:
         word_vec = quantizator_func(word)
