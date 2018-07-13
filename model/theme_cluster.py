@@ -15,11 +15,15 @@ def kmeans(max_clusters, matrix, word_list):
     pca = PCA(n_components=2)
     reduce_word_vec = pca.fit_transform(matrix)
     reduce_word_vec_lst = {}
-
+    token_location = {}
     for i in range(0, len(matrix)):
         temp_vec = reduce_word_vec[i]
+        temp_vec_lst = list(reduce_word_vec[i])
         temp_token = word_list[i]
         reduce_word_vec_lst[temp_token] = temp_vec
+        token_location[temp_token] = temp_vec_lst
+
+    insert("token_locations", token_location)
 
     K = range(3, max_clusters)
     mean_distortions = []

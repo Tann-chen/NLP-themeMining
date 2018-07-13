@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Theme Analysis Demo</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/bootstrap.css">
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
@@ -27,13 +27,7 @@
       </ol>
 
       <!-- Wrapper for slides -->
-      <div class="carousel-inner" role="listbox">
-        <div class="item active">
-          ....
-        </div>
-        <div class="item">
-          ...
-        </div>
+      <div class="carousel-inner" role="listbox" id="carousel_contents">
       </div>
 
       <!-- Controls -->
@@ -130,28 +124,6 @@ var _isload_heatchart = false;
 var _DataSet = DataSet;
 var DataView = _DataSet.DataView;
 
-//data
-var pie_data = [
-    { item: "theme1", count: 35 },
-    { item: "theme2", count: 23 },
-    { item: "theme3", count: 17 },
-    { item: "theme4", count: 13 },
-    { item: "theme5", count: 9 }
-];
-
-var bar_data = [
-    { token: "token1", count: 8 },
-    { token: "token2", count: 25 },
-    { token: "token3", count: 6 },
-    { token: "token4", count: 12 },
-    { token: "token5", count: 21 },
-    { token: "token6", count: 20 },
-    { token: "token7", count: 33 },
-    { token: "token8", count: 18 }
-];
-
-/////////////////////////////////
-
 $(function() {
     //get init data
     $.ajax({
@@ -161,6 +133,7 @@ $(function() {
         success: function(resp) {
             render_pie_chart(resp.pie_chart_data);
             render_bar_chart(resp.bar_chart_data);
+            loading_txt_container(resp.largest_theme);
             adjust_screen();
         },
         error: function(resp) {
@@ -229,7 +202,7 @@ function render_pie_chart(data) {
     pie_chart.source(dv, {
         percent: {
             formatter: function formatter(val) {
-                val = val.toFixed(2) * 100 + "%";
+                val = Math.round(val * 100) + "%";
                 return val;
             }
         }
@@ -256,13 +229,14 @@ function render_pie_chart(data) {
         });
 
     pie_chart.on("plotclick", function(selected) {
-        console.log(selected);
         var selected_theme = selected.data._origin.item;
+        console.log(selected_theme);
         $.ajax({
             type: "get",
-            url: "/api/data/bar_chart",
+            url: "/api/data/bar_chart?theme=" + selected_theme,
             dataType: "json",
             success: function(resp) {
+                $("#bar_chart_node").empty();
                 render_bar_chart(resp);
             },
             error: function(resp) {
@@ -361,6 +335,40 @@ function loading_lines_chart() {
     });
 }
 
+
+function loading_txt_container(target_theme){
+    var carousel_contents = $('#carousel_contents');
+    $.ajax({
+        type: "get",
+        url: "/api/data/sentence?theme=" + target_theme,
+        dataType: "json",
+        success: function(data) {
+            carousel_contents.empty();
+            one_page_content = '<div class="item txt-content active">';
+            counter = 0;
+            for(var i in data){
+                one_page_content = one_page_content + '<p>' + data[i] + '</p>';
+                counter ++;
+                if(counter == 10){
+                    one_page_content = one_page_content + '</div>';
+                    carousel_contents.append(one_page_content);
+                    one_page_content = '<div class="item txt-content">';
+                    counter = 0;
+                }
+            }
+            //last page
+            if(counter > 0){
+                one_page_content = one_page_content + '</div>';
+                carousel_contents.append(one_page_content);
+            }
+        },
+        error: function(resp) {
+            alert("Init Error !");
+        }
+    });
+}
+
+
 function loading_heat_chart() {
     $.ajax({
         type: "get",
@@ -425,7 +433,10 @@ function loading_heat_chart() {
             chart
                 .polygon()
                 .position("theme*token")
-                .color("similarity", "#BAE7FF-#1890FF-#0050B3")
+                .color(
+                    "similarity",
+                    "#FFFFFF-#FAFFA8-#FFC838-#FF8C12-#FA541C-#F51D27"
+                )
                 .label("similarity", {
                     offset: -2,
                     textStyle: {
@@ -447,47 +458,49 @@ function loading_heat_chart() {
 }
 
 function loading_points_chart() {
-    var point_data = [
-        { theme: "male", token: "word", x: 179.1, y: 79.1 },
-        { theme: "male", token: "word", x: 190.5, y: 98.2 },
-        { theme: "male", token: "word", x: 177.8, y: 84.1 },
-        { theme: "male", token: "word", x: 180.3, y: 83.2 },
-        { theme: "male", token: "word", x: 180.3, y: 83.2 }
-    ];
+    $.ajax({
+        type: "get",
+        url: "/api/data/point_chart",
+        dataType: "json",
+        success: function(point_data) {
+            var point_chart = new G2.Chart({
+                container: "point_chart_node",
+                forceFit: true,
+                height: window.innerHeight * 0.8
+            });
 
-    var point_chart = new G2.Chart({
-        container: "point_chart_node",
-        forceFit: true,
-        height: window.innerHeight * 0.8
-    });
+            point_chart.source(point_data);
+            point_chart.tooltip({
+                showTitle: false,
+                crosshairs: {
+                    type: "cross"
+                },
+                itemTpl:
+                    '<li data-index={index} style="margin-bottom:4px;">' +
+                    '<span style="background-color:{color};" class="g2-tooltip-marker"></span>' +
+                    "{name}<br/>" +
+                    "{value}" +
+                    "</li>"
+            });
 
-    point_chart.source(point_data);
-    point_chart.tooltip({
-        showTitle: false,
-        crosshairs: {
-            type: "cross"
+            point_chart
+                .point()
+                .position("x*y")
+                .color("theme")
+                .size(4)
+                .opacity(0.65)
+                .shape("circle")
+                .tooltip("token*x*y", function(token, x, y) {
+                    return {
+                        name: token,
+                        value: x + ", " + y
+                    };
+                });
+            point_chart.render();
         },
-        itemTpl:
-            '<li data-index={index} style="margin-bottom:4px;">' +
-            '<span style="background-color:{color};" class="g2-tooltip-marker"></span>' +
-            "{name}<br/>" +
-            "{value}" +
-            "</li>"
+        error: function(resp) {
+            alert("Init Error !");
+        }
     });
-
-    point_chart
-        .point()
-        .position("x*y")
-        .color("theme")
-        .size(4)
-        .opacity(0.65)
-        .shape("circle")
-        .tooltip("token*x*y", function(token, x, y) {
-            return {
-                name: token,
-                value: x + ", " + y
-            };
-        });
-    point_chart.render();
 }
 </script>

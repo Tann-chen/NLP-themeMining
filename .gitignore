@@ -1,5 +1,5 @@
 # word2vec model
-code/word2vec_model.bin
+**/word2vec_model.bin
 
 # py compile file
 .pyc

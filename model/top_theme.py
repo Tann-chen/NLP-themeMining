@@ -235,7 +235,7 @@ class TopTheme:
         # repo
         dict_input = {}
         dict_input["question"] = question
-        dict_input["query tokens"] = question_removed_stopwords
+        dict_input["query_tokens"] = question_removed_stopwords
         dict_input["themes"] = self.theme_clustered['representative']
         dict_input["similarity"] = similarity_container
         insert("queries",dict_input)

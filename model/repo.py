@@ -1,12 +1,12 @@
 from pymongo import MongoClient
 
-URL = "mongodb://top-theme-mongo:L4SDrxH8M7jk9Z7iotMcx6FxOPLaF6CWkF2ZfUhQKiAK5zN3KqFkQFNVLCsyGNTGapk0RGLZD1YiIuVLQRoC5w==@top-theme-mongo.documents.azure.com:10255/?ssl=true&replicaSet=globaldb"
-DB_NAME = "test"
+URL = "mongodb://top-theme:uejDPgss76Cxr2VNzKOB19xnf50cWF8ZnHjIVBAJaknlQiBMtuN2vxTszOd7zIDOYkpHBPoPK3EB8hrCPIydfw==@top-theme.documents.azure.com:10255/?ssl=true&replicaSet=globaldb"
+DB_NAME = "top-theme"
 
 conn = MongoClient(URL)
 db = conn[DB_NAME]
 
-lst_colletion = ["corpus", "queries", "themes", "cluster_analysis"]
+lst_colletion = ["corpus", "queries", "themes", "cluster_analysis", "token_locations"]
 # get version from db infos
 DB_INFOS = db["db_infos"].find({"_id":"DB_INFOS@2018-07-10"})[0]
 version = DB_INFOS["version"]
