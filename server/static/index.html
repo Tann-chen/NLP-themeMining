@@ -2,505 +2,601 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Theme Analysis Demo</title>
+  <title>Theme Analysis Tool</title>
   <link rel="stylesheet" href="css/bootstrap.css">
   <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-<div class="container">
-  <div class="col-sm-6">
-    <div id="pie_chart_node"></div>
-  </div>
-  <div class="col-sm-6">
-    <div id="bar_chart_node"></div>
-  </div>
-</div>
-
-<div class="container">
-  <div class="col-sm-12" style="border: solid black 1px">
-    <div id="carousel-example-generic" class="carousel slide" data-ride="carousel" style="height: 300px">
-      <!-- Indicators -->
-      <ol class="carousel-indicators">
-        <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="1"></li>
-        <li data-target="#carousel-example-generic" data-slide-to="2"></li>
-      </ol>
-
-      <!-- Wrapper for slides -->
-      <div class="carousel-inner" role="listbox" id="carousel_contents">
+  <!-- portal page -->
+  <div id="portal_page" class="content-page">
+    <div id="corpus">
+      <div class="col-sm-offset-1 col-sm-10"><h4>Select One Corpus And Query:</h4></div>
+      <div id="corpus_1" class="corpus col-sm-offset-1 col-sm-10 well">
+        <div class="col-sm-12">
+          <b class="title">one sentence decription of corpus</b>
+          <span class="corpus-time">2018-06-09 18:00:00</span>
+        </div>
+        <div class="col-sm-12" style="padding-top: 15px">
+          <ul class="col-sm-6">
+            <li>Samples Size:<span>5MB</span></li>
+            <li>Sample Amount:<span>20</span></li>
+            <li>Sentence Amount:<span>5000</span></li>
+          </ul>
+          <ul class="col-sm-6">
+            <li>Tokens Amount:<span>5000</span></li>
+            <li>Queries Amount<span>5</span></li>
+            <li>Themes Amount:<span>5</span></li>
+          </ul>
+        </div>
+        <div class="queries col-sm-12 input-group"></div>
       </div>
 
-      <!-- Controls -->
-      <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-      </a>
-      <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-      </a>
+      <div id="corpus_2" class="corpus col-sm-offset-1 col-sm-10 well">
+        <div class="col-sm-12">
+          <b class="title">one sentence decription of corpus</b>
+          <span class="corpus-time">2018-06-09 18:00:00</span>
+        </div>
+        <div class="col-sm-12" style="padding-top: 15px">
+          <ul class="col-sm-6">
+            <li>Samples Size:<span>5MB</span></li>
+            <li>Sample Amount:<span>20</span></li>
+            <li>Sentence Amount:<span>5000</span></li>
+          </ul>
+          <ul class="col-sm-6">
+            <li>Tokens Amount:<span>5000</span></li>
+            <li>Queries Amount<span>5</span></li>
+            <li>Themes Amount:<span>5</span></li>
+          </ul>
+        </div>
+        <div class="queries col-sm-12 input-group"></div>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="menus">
-    <div class="bottom-menus" style="bottom:90px">
+  <!-- analysis page -->
+  <div id="analysis_page" class="content-page" style="display:none;left:100%;">
+    <div class="container">
+      <div class="col-sm-6">
+        <div id="pie_chart_node"></div>
+      </div>
+
+      <div class="col-sm-6">
+        <div id="bar_chart_node"></div>
+      </div>
+
+      <div class="col-sm-12" style="border: solid black 1px">
+        <div id="carousel-example-generic" class="carousel slide" data-ride="carousel" style="height: 300px">
+          <!-- Indicators -->
+          <ol class="carousel-indicators">
+            <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+            <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+            <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+          </ol>
+
+          <!-- Wrapper for slides -->
+          <div class="carousel-inner" role="listbox" id="carousel_contents">
+          </div>
+
+          <!-- Controls -->
+          <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div id="go-back">
+      <button type="button" id="go-back-btn">
+        <img src="img/left_page.png" width="25px" height="25px"/>
+      </button>
+    </div>
+
+    <div id="menus">
+      <div class="bottom-menus" style="bottom:90px">
         <button type="button" data-toggle="modal" data-target="#point_chart_modal">
-            <img src="img/icon_pc.png" width="30px" height="30px"/>
+          <img src="img/icon_pc.png" width="30px" height="30px"/>
         </button>
-    </div>
-    <div class="bottom-menus" style="bottom:155px;">
+      </div>
+      <div class="bottom-menus" style="bottom:155px;">
         <button type="button" data-toggle="modal" data-target="#line_chart_modal">
-            <img src="img/icon_lc.png" width="30px" height="30px"/>
+          <img src="img/icon_lc.png" width="30px" height="30px"/>
         </button>
-    </div>
-    <div class="bottom-menus" style="bottom:25px;">
+      </div>
+      <div class="bottom-menus" style="bottom:25px;">
         <button type="button" data-toggle="modal" data-target="#heat_chart_modal">
-            <img src="img/color_grid.png" width="30px" height="30px"/>
+          <img src="img/color_grid.png" width="30px" height="30px"/>
         </button>
+      </div>
     </div>
-<div>
+  </div>
 
-
-<!-- point chart modal -->
-<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel1" id="point_chart_modal">
+  <!-- point chart modal -->
+  <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel1" id="point_chart_modal">
     <div class="modal-dialog" role="document" style="width: 1500px;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="LargeModalLabel1">Token Distribution Details</h4>
-          </div>
-          <div class="modal-body" width="1500px" height="1000px">
-            <div id="point_chart_node"></div>
-          </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="LargeModalLabel1">Token Distribution Details</h4>
+        </div>
+        <div class="modal-body" width="1500px" height="1000px">
+          <div id="point_chart_node"></div>
         </div>
       </div>
-</div>
+    </div>
+  </div>
 
-<!-- lines chart modal -->
-<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel2" id="line_chart_modal">
+  <!-- lines chart modal -->
+  <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel2" id="line_chart_modal">
     <div class="modal-dialog" role="document" style="width: 1500px;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="LargeModalLabel2">Number of Clusters Analysis</h4>
-          </div>
-          <div class="modal-body" width="1500px" height="1000px">
-            <div id="line_chart_node"></div>
-          </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="LargeModalLabel2">Number of Clusters Analysis</h4>
+        </div>
+        <div class="modal-body" width="1500px" height="1000px">
+          <div id="line_chart_node"></div>
         </div>
       </div>
-</div>
+    </div>
+  </div>
 
-<!-- heat chart modal -->
-<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel2" id="heat_chart_modal">
+  <!-- heat chart modal -->
+  <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel3" id="heat_chart_modal">
     <div class="modal-dialog" role="document" style="width: 1500px;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="LargeModalLabel2">Theme Silimilarities with Question</h4>
-          </div>
-          <div class="modal-body" width="1500px" height="1000px">
-            <div id="heat_chart_node"></div>
-          </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Theme Silimilarities with Question</h4>
+        </div>
+        <div class="modal-body" width="1500px" height="1000px">
+          <div id="heat_chart_node"></div>
         </div>
       </div>
-</div>
-
+    </div>
+  </div>
 </body>
-</html>
 <script src='js/jquery-1.11.3.min.js'></script>
 <script src='js/bootstrap.min.js'></script>
 <script src="js/g2.min.js"></script>
 <script src="js/data-set.min.js"></script>
 <script type="text/javascript">
-//Fixing iframe window.innerHeight0 in Safari
-document.body.clientHeight;
+    //fixing iframe window.innerHeight0 in Safari
+    document.body.clientHeight;
 
-var _isload_pointchart = false;
-var _isload_linechart = false;
-var _isload_heatchart = false;
+    //golbal pramaters
+    var _DataSet = DataSet;
+    var DataView = _DataSet.DataView;
 
-var _DataSet = DataSet;
-var DataView = _DataSet.DataView;
+    var isload_pointchart = false;
+    var isload_linechart = false;
+    var isload_heatchart = false;
+    var selected_corpus_id = '';
 
-$(function() {
-    //get init data
-    $.ajax({
-        type: "get",
-        url: "/api/init",
-        dataType: "json",
-        success: function(resp) {
-            render_pie_chart(resp.pie_chart_data);
-            render_bar_chart(resp.bar_chart_data);
-            loading_txt_container(resp.largest_theme);
+    $(function () {
+        $(window).resize(function () {
             adjust_screen();
-        },
-        error: function(resp) {
-            alert("Init Error !");
-        }
-    });
-
-    //event bindings
-    $(window).resize(function() {
-        adjust_screen();
-    });
-});
-
-$("#point_chart_modal").on("shown.bs.modal", function(e) {
-    if (!_isload_pointchart) {
-        loading_points_chart();
-        _isload_pointchart = true;
-    }
-});
-
-$("#line_chart_modal").on("shown.bs.modal", function(e) {
-    if (!_isload_linechart) {
-        loading_lines_chart();
-        _isload_linechart = true;
-    }
-});
-
-$("#heat_chart_modal").on("shown.bs.modal", function(e) {
-    if (!_isload_heatchart) {
-        loading_heat_chart();
-        _isload_heaetchart = true;
-    }
-});
-
-function adjust_screen() {
-    var window_width = window.innerWidth;
-    var window_height = window.innerHeight;
-    $("#point_chart_modal")
-        .find(".modal-dialog")
-        .css("width", window_width * 0.85 + "px");
-
-    $("#line_chart_modal")
-        .find(".modal-dialog")
-        .css("width", window_width * 0.85 + "px");
-
-    $("#heat_chart_modal")
-        .find(".modal-dialog")
-        .css("width", window_width * 0.8 + "px");
-}
-
-function render_pie_chart(data) {
-    var dv = new DataView();
-    dv.source(data).transform({
-        type: "percent",
-        field: "count",
-        dimension: "item",
-        as: "percent"
-    });
-
-    var pie_chart = new G2.Chart({
-        container: "pie_chart_node",
-        forceFit: true,
-        height: window.innerHeight * 0.6
-    });
-
-    pie_chart.source(dv, {
-        percent: {
-            formatter: function formatter(val) {
-                val = Math.round(val * 100) + "%";
-                return val;
-            }
-        }
-    });
-
-    pie_chart.coord("theta", {
-        radius: 0.75
-    });
-
-    pie_chart.legend(false);
-    pie_chart.tooltip(false);
-    pie_chart
-        .intervalStack()
-        .position("percent")
-        .color("item")
-        .label("percent", {
-            formatter: function formatter(val, item) {
-                return item.point.item + ": " + val;
-            }
-        })
-        .style({
-            lineWidth: 1,
-            stroke: "#fff"
         });
 
-    pie_chart.on("plotclick", function(selected) {
-        var selected_theme = selected.data._origin.item;
-        console.log(selected_theme);
+        $(".corpus").click(function () {
+            var selected_corpus = $(this);
+
+            if (selected_corpus.prop('id') != selected_corpus_id) {
+                selected_corpus_id = selected_corpus.prop('id');
+                attach_queries(selected_corpus.find('.queries'));
+            }
+        });
+
+        $("#point_chart_modal").on("shown.bs.modal", function (e) {
+            if (!isload_pointchart) {
+                loading_points_chart();
+                isload_pointchart = true;
+            }
+        });
+
+        $("#line_chart_modal").on("shown.bs.modal", function (e) {
+            if (!isload_linechart) {
+                loading_lines_chart();
+                isload_linechart = true;
+            }
+        });
+
+        $("#heat_chart_modal").on("shown.bs.modal", function (e) {
+            if (!isload_heatchart) {
+                loading_heat_chart();
+                isload_heatchart = true;
+            }
+        });
+        
+        $("#go-back-btn").click(function () {
+            $("#portal_page").css("display","block");
+            $("#portal_page").animate({left:'0px'},"slow");
+            $("#analysis_page").animate({left:'100%'},'slow',function(){
+                $(this).css("display","none");
+            });
+        });
+    });
+
+    function adjust_screen() {
+        var window_width = window.innerWidth;
+        var window_height = window.innerHeight;
+
+        $("#point_chart_modal")
+            .find(".modal-dialog")
+            .css("width", window_width * 0.85 + "px");
+
+        $("#line_chart_modal")
+            .find(".modal-dialog")
+            .css("width", window_width * 0.85 + "px");
+
+        $("#heat_chart_modal")
+            .find(".modal-dialog")
+            .css("width", window_width * 0.8 + "px");
+    }
+
+    function loading_analysis_page(seleted_corpus, seleted_query) {
         $.ajax({
             type: "get",
-            url: "/api/data/bar_chart?theme=" + selected_theme,
+            url: "/api/init_analysis?corpus=" + seleted_corpus + "&query=" + seleted_query,
             dataType: "json",
-            success: function(resp) {
-                $("#bar_chart_node").empty();
-                render_bar_chart(resp);
+            success: function (resp) {
+                render_pie_chart(resp.pie_chart_data);
+                render_bar_chart(resp.bar_chart_data);
+                loading_txt_container(resp.largest_theme);
+                adjust_screen();
             },
-            error: function(resp) {
+            error: function (resp) {
                 alert("Internet Error !");
             }
         });
-    });
+    }
 
-    pie_chart.render();
-}
 
-function render_bar_chart(data) {
-    var bar_chart = new G2.Chart({
-        container: "bar_chart_node",
-        forceFit: true,
-        height: window.innerHeight * 0.6
-    });
+    function attach_queries(selected_query_selection_dom) {
+        $(".queries").empty();
+        selected_query_selection_dom.append('<select class="form-control go_to">\n' +
+            '          <option>Are you happy today?</option>\n' +
+            '          <option>Did you have lunch?</option>\n' +
+            '          <option>Did you have lunch?</option>\n' +
+            '          <option>Did you have lunch?</option>\n' +
+            '        </select>');
 
-    bar_chart.source(data);
-    var max_count = 0;
-    for (var i in data) {
-        if (data[i].count > max_count) {
-            max_count = data[i].count;
+        selected_query_selection_dom.append('<div class="input-group-btn">\n' +
+            '          <button class="btn btn-default" type="button" style="outline: none;">Go</button>\n' +
+            '        </div>');
+
+        selected_query_selection_dom.find('button').click(function () {
+            $("#analysis_page").css("display", "block");
+            $("#analysis_page").animate({left: '0px'}, 'slow');
+            $("#portal_page").animate({left: '-100%'}, "slow", function () {
+                $(this).css("display", "none");
+            });
+        });
+    }
+
+    function render_pie_chart(data) {
+        var dv = new DataView();
+
+        dv.source(data).transform({
+            type: "percent",
+            field: "count",
+            dimension: "item",
+            as: "percent"
+        });
+
+        var pie_chart = new G2.Chart({
+            container: "pie_chart_node",
+            forceFit: true,
+            height: window.innerHeight * 0.6
+        });
+
+        pie_chart.source(dv, {
+            percent: {
+                formatter: function formatter(val) {
+                    val = Math.round(val * 100) + "%";
+                    return val;
+                }
+            }
+        });
+
+        pie_chart.coord("theta", {
+            radius: 0.75
+        });
+
+        pie_chart.legend(false);
+        pie_chart.tooltip(false);
+        pie_chart
+            .intervalStack()
+            .position("percent")
+            .color("item")
+            .label("percent", {
+                formatter: function formatter(val, item) {
+                    return item.point.item + ": " + val;
+                }
+            })
+            .style({
+                lineWidth: 1,
+                stroke: "#fff"
+            });
+
+        pie_chart.on("plotclick", function (selected) {
+            var selected_theme = selected.data._origin.item;
+
+            console.log(selected_theme);
+            $.ajax({
+                type: "get",
+                url: "/api/data/bar_chart?theme=" + selected_theme,
+                dataType: "json",
+                success: function (resp) {
+                    $("#bar_chart_node").empty();
+                    render_bar_chart(resp);
+                },
+                error: function (resp) {
+                    alert("Internet Error !");
+                }
+            });
+        });
+
+        pie_chart.render();
+    }
+
+    function render_bar_chart(data) {
+        var bar_chart = new G2.Chart({
+            container: "bar_chart_node",
+            forceFit: true,
+            height: window.innerHeight * 0.6
+        });
+
+        bar_chart.source(data);
+        var max_count = 0;
+        for (var i in data) {
+            if (data[i].count > max_count) {
+                max_count = data[i].count;
+            }
         }
+        interv = 0;
+        if (max_count < 20) {
+            interv = 2;
+        } else if (max_count <= 50) {
+            interv = 5;
+        } else {
+            interv = 10;
+        }
+        bar_chart.scale("count", {
+            tickInterval: interv
+        });
+        bar_chart.interval().position("token*count");
+        bar_chart.render();
     }
-    interv = 0;
-    if (max_count < 20) {
-        interv = 2;
-    } else if (max_count <= 50) {
-        interv = 5;
-    } else {
-        interv = 10;
-    }
-    bar_chart.scale("count", {
-        tickInterval: interv
-    });
-    bar_chart.interval().position("token*count");
-    bar_chart.render();
-}
 
-function loading_lines_chart() {
-    $.ajax({
-        type: "get",
-        url: "/api/data/line_char",
-        dataType: "json",
-        success: function(resp) {
-            var data = resp;
-            var dv = new DataView();
-            dv.source(data).transform({
-                type: "fold",
-                fields: ["elobow", "SC_score"],
-                key: "method",
-                value: "score"
-            });
-            var chart = new G2.Chart({
-                container: "line_chart_node",
-                forceFit: true,
-                height: window.innerHeight * 0.85
-            });
-            chart.source(dv, {
-                num_cluster: {
-                    range: [0, 1]
-                }
-            });
-            chart.tooltip({
-                crosshairs: {
-                    type: "line"
-                }
-            });
-            chart.axis("score", {
-                label: {
-                    formatter: function formatter(val) {
-                        return val;
+    function loading_lines_chart() {
+        $.ajax({
+            type: "get",
+            url: "/api/data/line_char",
+            dataType: "json",
+            success: function (resp) {
+                var data = resp;
+                var dv = new DataView();
+                dv.source(data).transform({
+                    type: "fold",
+                    fields: ["elobow", "SC_score"],
+                    key: "method",
+                    value: "score"
+                });
+                var chart = new G2.Chart({
+                    container: "line_chart_node",
+                    forceFit: true,
+                    height: window.innerHeight * 0.85
+                });
+                chart.source(dv, {
+                    num_cluster: {
+                        range: [0, 1]
+                    }
+                });
+                chart.tooltip({
+                    crosshairs: {
+                        type: "line"
+                    }
+                });
+                chart.axis("score", {
+                    label: {
+                        formatter: function formatter(val) {
+                            return val;
+                        }
+                    }
+                });
+                chart
+                    .line()
+                    .position("num_cluster*score")
+                    .color("method");
+                chart
+                    .point()
+                    .position("num_cluster*score")
+                    .color("method")
+                    .size(4)
+                    .shape("circle")
+                    .style({
+                        stroke: "#fff",
+                        lineWidth: 1
+                    });
+                chart.render();
+            },
+            error: function (resp) {
+                alert("Internet Error !");
+            }
+        });
+    }
+
+    function loading_txt_container(target_theme) {
+        var carousel_contents = $("#carousel_contents");
+
+        $.ajax({
+            type: "get",
+            url: "/api/data/sentence?theme=" + target_theme,
+            dataType: "json",
+            success: function (data) {
+                carousel_contents.empty();
+                one_page_content = '<div class="item txt-content active">';
+                counter = 0;
+                for (var i in data) {
+                    one_page_content = one_page_content + "<p>" + data[i] + "</p>";
+                    counter++;
+                    if (counter == 10) {
+                        one_page_content = one_page_content + "</div>";
+                        carousel_contents.append(one_page_content);
+                        one_page_content = '<div class="item txt-content">';
+                        counter = 0;
                     }
                 }
-            });
-            chart
-                .line()
-                .position("num_cluster*score")
-                .color("method");
-            chart
-                .point()
-                .position("num_cluster*score")
-                .color("method")
-                .size(4)
-                .shape("circle")
-                .style({
-                    stroke: "#fff",
-                    lineWidth: 1
-                });
-            chart.render();
-        },
-        error: function(resp) {
-            alert("Internet Error !");
-        }
-    });
-}
-
-
-function loading_txt_container(target_theme){
-    var carousel_contents = $('#carousel_contents');
-    $.ajax({
-        type: "get",
-        url: "/api/data/sentence?theme=" + target_theme,
-        dataType: "json",
-        success: function(data) {
-            carousel_contents.empty();
-            one_page_content = '<div class="item txt-content active">';
-            counter = 0;
-            for(var i in data){
-                one_page_content = one_page_content + '<p>' + data[i] + '</p>';
-                counter ++;
-                if(counter == 10){
-                    one_page_content = one_page_content + '</div>';
+                //last page
+                if (counter > 0) {
+                    one_page_content = one_page_content + "</div>";
                     carousel_contents.append(one_page_content);
-                    one_page_content = '<div class="item txt-content">';
-                    counter = 0;
                 }
+            },
+            error: function (resp) {
+                alert("Init Error !");
             }
-            //last page
-            if(counter > 0){
-                one_page_content = one_page_content + '</div>';
-                carousel_contents.append(one_page_content);
-            }
-        },
-        error: function(resp) {
-            alert("Init Error !");
-        }
-    });
-}
+        });
+    }
 
+    function loading_heat_chart() {
+        $.ajax({
+            type: "get",
+            url: "/api/data/grid_chart",
+            dataType: "json",
+            success: function (resp) {
+                var grid_data = resp.similarity;
+                var lst_x = resp.themes;
+                var lst_y = resp.query_tokens;
 
-function loading_heat_chart() {
-    $.ajax({
-        type: "get",
-        url: "/api/data/grid_chart",
-        dataType: "json",
-        success: function(resp) {
-            var grid_data = resp.similarity;
-            var lst_x = resp.themes;
-            var lst_y = resp.query_tokens;
-
-            var source = [];
-            for (var i = 0; i < grid_data.length; i++) {
-                var item = grid_data[i];
-                var obj = {};
-                obj.theme = item[0];
-                obj.token = item[1];
-                obj.similarity = item[2];
-                source.push(obj);
-            }
-
-            var chart = new G2.Chart({
-                id: "heat_chart_node",
-                forceFit: true,
-                height: window.innerHeight * 0.83
-            });
-
-            chart.source(source, {
-                theme: {
-                    type: "cat",
-                    values: lst_x
-                },
-                token: {
-                    type: "cat",
-                    values: lst_y
+                var source = [];
+                for (var i = 0; i < grid_data.length; i++) {
+                    var item = grid_data[i];
+                    var obj = {};
+                    obj.theme = item[0];
+                    obj.token = item[1];
+                    obj.similarity = item[2];
+                    source.push(obj);
                 }
-            });
-            chart.axis("theme", {
-                tickLine: null,
-                grid: {
-                    align: "center",
-                    lineStyle: {
-                        lineWidth: 1,
-                        lineDash: null,
-                        stroke: "#f0f0f0"
-                    }
-                }
-            });
 
-            chart.axis("token", {
-                title: null,
-                grid: {
-                    align: "center",
-                    lineStyle: {
-                        lineWidth: 1,
-                        lineDash: null,
-                        stroke: "#f0f0f0"
-                    },
-                    showFirstLine: true
-                }
-            });
-
-            chart
-                .polygon()
-                .position("theme*token")
-                .color(
-                    "similarity",
-                    "#FFFFFF-#FAFFA8-#FFC838-#FF8C12-#FA541C-#F51D27"
-                )
-                .label("similarity", {
-                    offset: -2,
-                    textStyle: {
-                        fill: "#fff",
-                        shadowBlur: 2,
-                        shadowColor: "rgba(0, 0, 0, .45)"
-                    }
-                })
-                .style({
-                    lineWidth: 1,
-                    stroke: "#fff"
+                var chart = new G2.Chart({
+                    id: "heat_chart_node",
+                    forceFit: true,
+                    height: window.innerHeight * 0.83
                 });
-            chart.render();
-        },
-        error: function(resp) {
-            alert("Internet Error !");
-        }
-    });
-}
 
-function loading_points_chart() {
-    $.ajax({
-        type: "get",
-        url: "/api/data/point_chart",
-        dataType: "json",
-        success: function(point_data) {
-            var point_chart = new G2.Chart({
-                container: "point_chart_node",
-                forceFit: true,
-                height: window.innerHeight * 0.8
-            });
+                chart.source(source, {
+                    theme: {
+                        type: "cat",
+                        values: lst_x
+                    },
+                    token: {
+                        type: "cat",
+                        values: lst_y
+                    }
+                });
+                chart.axis("theme", {
+                    tickLine: null,
+                    grid: {
+                        align: "center",
+                        lineStyle: {
+                            lineWidth: 1,
+                            lineDash: null,
+                            stroke: "#f0f0f0"
+                        }
+                    }
+                });
 
-            point_chart.source(point_data);
-            point_chart.tooltip({
-                showTitle: false,
-                crosshairs: {
-                    type: "cross"
-                },
-                itemTpl:
+                chart.axis("token", {
+                    title: null,
+                    grid: {
+                        align: "center",
+                        lineStyle: {
+                            lineWidth: 1,
+                            lineDash: null,
+                            stroke: "#f0f0f0"
+                        },
+                        showFirstLine: true
+                    }
+                });
+
+                chart
+                    .polygon()
+                    .position("theme*token")
+                    .color(
+                        "similarity",
+                        "#FFFFFF-#FAFFA8-#FFC838-#FF8C12-#FA541C-#F51D27"
+                    )
+                    .label("similarity", {
+                        offset: -2,
+                        textStyle: {
+                            fill: "#fff",
+                            shadowBlur: 2,
+                            shadowColor: "rgba(0, 0, 0, .45)"
+                        }
+                    })
+                    .style({
+                        lineWidth: 1,
+                        stroke: "#fff"
+                    });
+                chart.render();
+            },
+            error: function (resp) {
+                alert("Internet Error !");
+            }
+        });
+    }
+
+    function loading_points_chart() {
+        $.ajax({
+            type: "get",
+            url: "/api/data/point_chart",
+            dataType: "json",
+            success: function (point_data) {
+                var point_chart = new G2.Chart({
+                    container: "point_chart_node",
+                    forceFit: true,
+                    height: window.innerHeight * 0.8
+                });
+
+                point_chart.source(point_data);
+                point_chart.tooltip({
+                    showTitle: false,
+                    crosshairs: {
+                        type: "cross"
+                    },
+                    itemTpl:
                     '<li data-index={index} style="margin-bottom:4px;">' +
                     '<span style="background-color:{color};" class="g2-tooltip-marker"></span>' +
                     "{name}<br/>" +
                     "{value}" +
                     "</li>"
-            });
-
-            point_chart
-                .point()
-                .position("x*y")
-                .color("theme")
-                .size(4)
-                .opacity(0.65)
-                .shape("circle")
-                .tooltip("token*x*y", function(token, x, y) {
-                    return {
-                        name: token,
-                        value: x + ", " + y
-                    };
                 });
-            point_chart.render();
-        },
-        error: function(resp) {
-            alert("Init Error !");
-        }
-    });
-}
+
+                point_chart
+                    .point()
+                    .position("x*y")
+                    .color("theme")
+                    .size(4)
+                    .opacity(0.65)
+                    .shape("circle")
+                    .tooltip("token*x*y", function (token, x, y) {
+                        return {
+                            name: token,
+                            value: x + ", " + y
+                        };
+                    });
+                point_chart.render();
+            },
+            error: function (resp) {
+                alert("Init Error !");
+            }
+        });
+    }
 </script>
+</html>
