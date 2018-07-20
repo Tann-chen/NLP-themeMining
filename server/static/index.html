@@ -28,7 +28,7 @@
             <li>Themes Amount:<span>5</span></li>
           </ul>
         </div>
-        <div class="queries col-sm-12 input-group"></div>
+        <div class="queries col-sm-11 input-group"></div>
       </div>
 
       <div id="corpus_2" class="corpus col-sm-offset-1 col-sm-10 well">
@@ -48,7 +48,7 @@
             <li>Themes Amount:<span>5</span></li>
           </ul>
         </div>
-        <div class="queries col-sm-12 input-group"></div>
+        <div class="queries col-sm-11 input-group"></div>
       </div>
     </div>
   </div>
@@ -241,7 +241,8 @@
     function loading_analysis_page(seleted_corpus, seleted_query) {
         $.ajax({
             type: "get",
-            url: "/api/init_analysis?corpus=" + seleted_corpus + "&query=" + seleted_query,
+            //url: "/api/init_analysis?corpus=" + seleted_corpus + "&query=" + seleted_query,
+            url: "http://localhost:users/user/current",
             dataType: "json",
             success: function (resp) {
                 render_pie_chart(resp.pie_chart_data);
@@ -274,6 +275,7 @@
             $("#analysis_page").animate({left: '0px'}, 'slow');
             $("#portal_page").animate({left: '-100%'}, "slow", function () {
                 $(this).css("display", "none");
+                loading_analysis_page(1,1);
             });
         });
     }
