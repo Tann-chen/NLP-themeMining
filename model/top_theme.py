@@ -3,34 +3,40 @@ import re
 import sys
 import nltk
 import string
+
 from types import FunctionType
+from sentences_store import SentenceStore
 from nltk.stem import WordNetLemmatizer
-from french_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
 from nltk.corpus import stopwords
-from googletrans import Translator
+from french_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
+from time import gmtime, strftime
+from theme_cluster import calculate_distance
+
 from data import save_pickle
 from data import read_pickle
 from data import save_txt
 from data import read_txt
 from data import str_of
 from func import pos_word
-from theme_cluster import calculate_distance
 from repo import insert
 
-IF_DEBUG = False
-cust_stop_words = ['x', 'quand','a','to']
+from stopwords import en_stopwords, fr_stopwords
 
+
+IF_DEBUG = False
 
 class TopTheme:
-
     def __init__(self):
-        self.language_regonizer = 0
-        self.sentence_tokenizer = 0
-        self.theme_cluster = 0
-        self.indexer = 0
-        self.phrase_extractor = 0
-        self.quantizator = 0
-        self.phrase_quantizator = 0
+        # dependences
+        self.language_regonizer = None
+        self.sentence_tokenizer = None
+        self.theme_cluster = None
+        self.indexer = None
+        self.phrase_extractor = None
+        self.quantizator = None
+        self.phrase_quantizator = None
+        # global parameters
+        self.corpus_id = None
         self.word_vec_map = {}      # map matching between word and vec
         self.theme_clustered = None      # clustered result
 
@@ -78,32 +84,36 @@ class TopTheme:
             print("ERROR: phrase_quantizator never setted")
             return 0
 
-        sentence_index = -1
-        sentences_store = []
-        inversed_index = {}
-        inversed_index_fr = {}
-        punctuations = set(string.punctuation)
-        lemmatizer = WordNetLemmatizer()
+        self.corpus_id = strftime("%Y-%m-%dT%H:%M:%S", gmtime())
+        sentence_store = SentenceStore(self.corpus_id)
+        en_lemmatizer = WordNetLemmatizer()
         fr_lemmatizer = FrenchLefffLemmatizer()
+
+        en_inversed_index = {}
+        fr_inversed_index = {}
+        punctuations = set(string.punctuation)
         translator = Translator()
 
 
+        # corpus statistic
+        corpus_size = 0
+
         for file_name in os.listdir(folder_path):
-            if not file_name.startswith('.'):   #avoid hidden file
+            if not file_name.startswith('.'):   # avoid hidden files
+                corpus_size = corpus_size + os.path.getsize(folder_path + '/' + file_name)
                 doc = read_txt(folder_path + '/' + file_name)
-                print("[INFO] reading " + file_name + " to build model")
-                # spilit doc to paragraphs, suppose single language in one paragraph
+                print("[INFO] reading and dealing the sample " + file_name + " ...")
+                # spilit doc to paragraphs, only support single language in one paragraph
                 paragraphs = doc.split('\n')
                 for parag in paragraphs:
                     language = self.language_regonizer(parag)
                     # sentence tokenize
                     lst_sentence = self.sentence_tokenizer(parag, language)
-                    # save original sentence to memory
-                    for s in lst_sentence:
-                        sentences_store.append(s)
 
                     for sentence in lst_sentence:
-                        sentence_index += 1
+                        sentence_store.push(sentence)
+                        sentence_index = sentence_store.get_current_sentence_index();
+
                         # case fold
                         sentence = sentence.lower()
                         # extract phrases
@@ -119,48 +129,40 @@ class TopTheme:
                         # tokenize
                         word_tokens = nltk.word_tokenize(removed_digit)
                         # filter stop words
-                        removed_stopwords = [t for t in word_tokens if t not in stopwords.words("english") and t not in stopwords.words("french") and t not in cust_stop_words]
+                        removed_stopwords = [t for t in word_tokens if t not in en_stopwords and t not in fr_stopwords]
                         # lemmatization & index for words
                         for t in removed_stopwords:
                             if language == 'english':
                                 pos_token = pos_word(t)
                                 if pos_token is not 0:
-                                    token = lemmatizer.lemmatize(t, pos=pos_token)
-                                    self.indexer(token, sentence_index, inversed_index)
+                                    token = en_lemmatizer.lemmatize(t, pos=pos_token)
+                                    self.indexer(token, sentence_index, en_inversed_index)
 
                             elif language == 'french':
                                 token = fr_lemmatizer.lemmatize(t)
-                                self.indexer(token, sentence_index, inversed_index_fr)
+                                self.indexer(token, sentence_index, fr_inversed_index)
                         # index for phrase
                         for t in phrases:
                             if language == 'english':
-                                self.indexer(t, sentence_index, inversed_index)
+                                self.indexer(t, sentence_index, en_inversed_index)
                             elif language == 'french':
-                                self.indexer(t, sentence_index, inversed_index_fr)
+                                self.indexer(t, sentence_index, fr_inversed_index)
 
         # persist the index
-        save_pickle(inversed_index, 'out/index_en.pickle')
-        save_txt(str_of(inversed_index), 'out/index_en.txt')
-        save_pickle(inversed_index_fr, 'out/index_fr.pickle')
-        save_txt(str_of(inversed_index_fr), 'out/index_fr.txt')
-
-        sentence_index = 0
-        for i in range(0,len(sentences_store)):
-            input_sentence={"_id":str(sentence_index)}
-            sentence_index = sentence_index + 1
-            input_sentence["content"] = sentences_store[i]
-            sentences_store[i] = input_sentence
-            insert("corpus",sentences_store[i])
+        path = 'out/'
+        save_pickle(en_inversed_index, path + self.corpus_id + '_en.pickle')
+        save_pickle(fr_inversed_index, path + self.corpus_id + '_fr.pickle')
 
         # get all tokens
-        lst_tokens = list(inversed_index.keys())
-        lst_tokens_fr = list(inversed_index_fr.keys())
+        en_lst_tokens = list(en_inversed_index.keys())
+        fr_lst_tokens = list(fr_inversed_index.keys())
 
+        ~***********
         # list of vector(list)
         matrix = []
 
         # english
-        for token in lst_tokens:
+        for token in en_lst_tokens:
             if ' '  not in token:   # token is a word
                 if IF_DEBUG:
                     print("[INFO] " + token + "is a word")

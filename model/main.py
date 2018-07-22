@@ -1,15 +1,15 @@
 from top_theme import TopTheme
-from func import language_regonize
-from func import sentence_tokenize
 from func import indexer
 from func import phrases_extract
 from word2vector import word2vector
 from theme_cluster import kmeans
 from average_phrases import phrases2vec
+from language_regonize import language_regonize
+from sentence_tokenize import sentence_tokenize
 
 
 if __name__ == '__main__':
-    top_theme_obj = TopTheme();
+    top_theme_obj = TopTheme()
     top_theme_obj.set_language_regonizer(language_regonize)
     top_theme_obj.set_sentence_tokenizer(sentence_tokenize)
     top_theme_obj.set_theme_cluster(kmeans)

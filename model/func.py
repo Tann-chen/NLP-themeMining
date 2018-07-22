@@ -2,7 +2,6 @@ import nltk
 from nltk import wordpunct_tokenize
 from nltk.tag import pos_tag
 from nltk.corpus import stopwords
-from nltk import sent_tokenize
 from textblob import TextBlob
 
 IF_DEBUG = True
