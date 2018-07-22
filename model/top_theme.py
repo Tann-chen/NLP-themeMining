@@ -1,5 +1,6 @@
 import os
 import re
+import gc
 import sys
 import nltk
 import string
@@ -26,7 +27,7 @@ from stopwords import en_stopwords, fr_stopwords
 IF_DEBUG = False
 
 class TopTheme:
-    def __init__(self):
+    def __init__(self, corpus_description):
         # dependences
         self.language_regonizer = None
         self.sentence_tokenizer = None
@@ -37,8 +38,11 @@ class TopTheme:
         self.phrase_quantizator = None
         # global parameters
         self.corpus_id = None
+        self.corpus_info = {}
         self.word_vec_map = {}      # map matching between word and vec
         self.theme_clustered = None      # clustered result
+
+        self.corpus_info["description"] = corpus_description
 
     def set_language_regonizer(self, language_regonizer):
         self.language_regonizer = language_regonizer
@@ -84,25 +88,29 @@ class TopTheme:
             print("ERROR: phrase_quantizator never setted")
             return 0
 
+        # corpus info
+        corpus_size = 0
+        sample_num = 0
+        sample_details = []
         self.corpus_id = strftime("%Y-%m-%dT%H:%M:%S", gmtime())
+        # tools
         sentence_store = SentenceStore(self.corpus_id)
         en_lemmatizer = WordNetLemmatizer()
         fr_lemmatizer = FrenchLefffLemmatizer()
-
-        en_inversed_index = {}
-        fr_inversed_index = {}
         punctuations = set(string.punctuation)
         translator = Translator()
 
-
-        # corpus statistic
-        corpus_size = 0
+        en_inversed_index = {}
+        fr_inversed_index = {}
 
         for file_name in os.listdir(folder_path):
             if not file_name.startswith('.'):   # avoid hidden files
                 corpus_size = corpus_size + os.path.getsize(folder_path + '/' + file_name)
                 doc = read_txt(folder_path + '/' + file_name)
                 print("[INFO] reading and dealing the sample " + file_name + " ...")
+                sample_num = sample_num + 1
+                sample_details.append(file_name)
+
                 # spilit doc to paragraphs, only support single language in one paragraph
                 paragraphs = doc.split('\n')
                 for parag in paragraphs:
@@ -156,8 +164,15 @@ class TopTheme:
         # get all tokens
         en_lst_tokens = list(en_inversed_index.keys())
         fr_lst_tokens = list(fr_inversed_index.keys())
+        for t in fr_lst_tokens:
+            if t in en_lst_tokens:
+                fr_lst_tokens.remove(t)     # rm duplicated token across en & fr
 
-        ~***********
+        # release memory
+        del en_inversed_index
+        del fr_inversed_index
+        gc.collect()
+
         # list of vector(list)
         matrix = []
 
@@ -165,66 +180,77 @@ class TopTheme:
         for token in en_lst_tokens:
             if ' '  not in token:   # token is a word
                 if IF_DEBUG:
-                    print("[INFO] " + token + "is a word")
+                    print("[DEBUG] " + token + " is a word")
 
-                temp_vector = self.quantizator(token)
-                if len(temp_vector) > 0:
-                    matrix.append(temp_vector)
-                    self.word_vec_map[token] = temp_vector
+                vector = self.quantizator(token)
+                if len(vector) > 0:    # avoid wrong-spelling word & extra-rare word
+                    matrix.append(vector)
+                    self.word_vec_map[token] = vector
             else:   # token is a phrase
                 if IF_DEBUG:
-                    print("[INFO] " + token + "is a phrase")
+                    print("[DEBUG] " + token + " is a phrase")
 
-                temp_vector = self.phrase_quantizator(token, self.quantizator)
-                if temp_vector is not 0:
-                    matrix.append(temp_vector)
-                    self.word_vec_map[token] = temp_vector
+                vector = self.phrase_quantizator(token, self.quantizator)
+                if vector is not 0:  # avoid wrong-spelling word & extra-rare phrase
+                    matrix.append(vector)
+                    self.word_vec_map[token] = vector
 
-
+        # french
         for token in lst_tokens_fr:
             if ' ' not in token:
+                if IF_DEBUG:
+                    print("[DEBUG] " + token + " is a word")
+                # tanslate to engish
                 after_trans = translator.translate(token, dest='en')
-                # print(after_trans.text)
-                # tanslate to engish after_tran
-                temp_vector = self.quantizator(after_trans.text)
-                if len(temp_vector) > 0:
-                    matrix.append(temp_vector)
-                    self.word_vec_map[token] = temp_vector
+                vector = self.quantizator(after_trans.text)
+                if len(vector) > 0:
+                    matrix.append(vector)
+                    self.word_vec_map[token] = vector
             else:
-                # translate to english
+                if IF_DEBUG:
+                    print("[DEBUG] " + token + " is a phrase")
+
                 after_trans = translator.translate(token, dest='en')
-                temp_vector = self.phrase_quantizator(after_trans.text, self.quantizator)
-                if temp_vector is not 0:
-                    matrix.append(temp_vector)
-                    self.word_vec_map[token] = temp_vector
+                vector = self.phrase_quantizator(after_trans.text, self.quantizator)
+                if vector is not 0:
+                    matrix.append(vector)
+                    self.word_vec_map[token] = vector
 
         # theme clustering
         self.theme_clustered = self.theme_cluster(num_cluster, matrix, list(self.word_vec_map.keys()))
 
+        # statistic
+        self.corpus_info["create_time"] = self.corpus_id   # use timestamp as corpus_id
+        self.corpus_info["last_update_time"] = self.corpus_id
+        self.corpus_info["sample_num"] = sample_num
+        self.corpus_info["sample_size"] = corpus_size
+        self.corpus_info["sample_details"] = sample_details
+        self.corpus_info["tokens_num"] = len(en_lst_tokens) + len(fr_lst_tokens)
+        self.corpus_info["themes_num"] = len(self.theme_clustered["clusters"])
+        self.corpus_info["sentences_num"] = sentence_index + 1
+        self.corpus_info["queries_num"] = 0
 
     def query(self, question):
         punctuations = set(string.punctuation)
 
+        # process query
         language = self.language_regonizer(question)
         question = question.lower()
-
         removed_punc = ''.join(s for s in question if s not in punctuations)
-        # remove all digits
         removed_digit = re.sub(r'\d+', '', removed_punc)
         word_tokens = nltk.word_tokenize(removed_digit)
-        question_removed_stopwords = [t for t in word_tokens if t not in stopwords.words(language)]
+        question_removed_stopwords = [t for t in word_tokens if t not in en_stopwords and t not in fr_stopwords]
         question_removed_vec = self.quantizator(question_removed_stopwords)
 
-
-        value = []
-        output = []
-        word_list = self.theme_clustered['clusters']
+        # calculate similarity
         similarity_container = []
+        word_list = self.theme_clustered['clusters']
+
         for iquery in range(0, len(question_removed_stopwords)):
             for itheme in range(0, len(word_list)):
                 similarity = 0
                 for w in word_list[itheme]:
-                    temp = calculate_distance(self.word_vec_map.get(w),question_removed_vec[iquery])
+                    temp = calculate_distance(self.word_vec_map.get(w), question_removed_vec[iquery])
                     similarity = similarity + temp
                 mean_similarity = similarity / len(word_list[itheme])
                 entry = []
@@ -232,14 +258,25 @@ class TopTheme:
                 entry.append(iquery)
                 entry.append(mean_similarity)
                 similarity_container.append(entry)
-        print(similarity_container)
 
-        # repo
-        dict_input = {}
-        dict_input["question"] = question
-        dict_input["query_tokens"] = question_removed_stopwords
-        dict_input["themes"] = self.theme_clustered['representative']
-        dict_input["similarity"] = similarity_container
-        insert("queries",dict_input)
-        print("[INFO] Finish input DB")
-        return similarity_container
+        if IF_DEBUG:
+            print("\n[DEBUG] --- The similarity between query and corpus clusters --- \n")
+            print(similarity_container)
+            print("\n")
+
+        # save query info to db
+        docu = {}
+        docu["_id"] = self.corpus_id + '#' + self.corpus_info["queries_num"]
+        docu["corpus_id"] = self.corpus_id
+        docu["question"] = question
+        docu["query_tokens"] = question_removed_stopwords
+        docu["themes"] = self.theme_clustered['representative']
+        docu["similarity"] = similarity_container
+        insert("queries",docu)
+
+        self.corpus_info["queries_num"] = self.corpus_info["queries_num"] + 1
+        print("[INFO] saving query infos to DB successfully.")
+
+    def __del__(self):
+        insert("corpus", self.corpus_info)
+        print("[INFO] saving corpus infos to DB successfully.")

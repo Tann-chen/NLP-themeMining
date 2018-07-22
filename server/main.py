@@ -104,8 +104,8 @@ def get_analysis_data():
     result["bar_chart_data"] = bar_data
 
     # release index
-    en_inversed_index = None
-    fr_inversed_index = None
+    del en_inversed_index
+    del fr_inversed_index
 
     return jsonify(result)
 
@@ -136,6 +136,9 @@ def get_bar_chart_data():
 
     # sort bar data based on "count"
     service_bubble_sort(bar_data, "count")
+
+    del en_inversed_index
+    del fr_inversed_index
 
     return jsonify(bar_data)
 
@@ -223,6 +226,9 @@ def get_related_sentence():
             txt = dict_sentences.get(postings[index])   # index: sentence
             sentence_data.append(txt)
             index = index + 1
+
+    del en_inversed_index
+    del fr_inversed_index
 
     return jsonify(sentence_data)
 

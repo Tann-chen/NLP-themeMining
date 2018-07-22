@@ -26,7 +26,12 @@ class SentenceStore:
             self.sentence_cache = {}
             self.counter = 0
 
-    def close(self):
+
+    def get_current_sentence_index(self):
+        return self.sentence_index - 1
+
+
+    def __del__(self):
         if len(self.sentence_cache.keys()) > 0:
             insert_doc = {}
             insert_doc["_id"] = self.corpus_id + '#' + self.current_doc_id
@@ -36,6 +41,3 @@ class SentenceStore:
             insert("corpus", insert_doc)
 
         print("[INFO] the sentence store has been closed.")
-
-    def get_current_sentence_index(self):
-        return self.sentence_index - 1
