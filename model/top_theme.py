@@ -20,7 +20,6 @@ from data import read_txt
 from data import str_of
 from func import pos_word
 from repo import insert
-
 from stopwords import en_stopwords, fr_stopwords
 
 
@@ -65,7 +64,7 @@ class TopTheme:
     def set_phrase_quantizator(self, phrase_quantizator):
         self.phrase_quantizator = phrase_quantizator
 
-    def build(self, folder_path, num_cluster):
+    def build(self, folder_path, min_clusters, max_clusters):
         if not isinstance(self.language_regonizer, FunctionType):
             print("ERROR: language_regonizer never setted or type error")
             return 0
@@ -217,7 +216,7 @@ class TopTheme:
                     self.word_vec_map[token] = vector
 
         # theme clustering
-        self.theme_clustered = self.theme_cluster(num_cluster, matrix, list(self.word_vec_map.keys()))
+        self.theme_clustered = self.theme_cluster(min_clusters, max_clusters, matrix, list(self.word_vec_map.keys()), self.corpus_id)
 
         # statistic
         self.corpus_info["create_time"] = self.corpus_id   # use timestamp as corpus_id

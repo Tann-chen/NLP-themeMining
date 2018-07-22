@@ -1,11 +1,12 @@
 from top_theme import TopTheme
 from func import indexer
 from func import phrases_extract
-from word2vector import word2vector
+from func import language_regonize
+from func import phrases2vec
+from func import sentence_tokenize
+
 from theme_cluster import kmeans
-from average_phrases import phrases2vec
-from language_regonize import language_regonize
-from sentence_tokenize import sentence_tokenize
+from word2vector import word2vector
 
 
 if __name__ == '__main__':
@@ -17,5 +18,5 @@ if __name__ == '__main__':
     top_theme_obj.set_phrase_extractor(phrases_extract)
     top_theme_obj.set_quantizator(word2vector)
     top_theme_obj.set_phrase_quantizator(phrases2vec)
-    top_theme_obj.build("in", 15)
+    top_theme_obj.build("in", 3, 15)
     top_theme_obj.query("what is the skills of leadership")
