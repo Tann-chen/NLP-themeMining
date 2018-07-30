@@ -1,10 +1,11 @@
 from sklearn.cluster import KMeans
 from scipy.spatial.distance import cdist
 from sklearn.metrics import silhouette_score
-import numpy as np
 from sklearn.decomposition import PCA
+import numpy as np
 
 from repo import insert
+from func import calculate_distance
 
 def kmeans(min_clusters, max_clusters, matrix, word_list, corpus_id):
     print("[INFO] doing Kmeans clustering...")
@@ -13,6 +14,7 @@ def kmeans(min_clusters, max_clusters, matrix, word_list, corpus_id):
     reduce_word_vec = pca.fit_transform(matrix)
     reduce_word_vec_lst = {}
     token_position = {}
+    token_position["corpus_id"] = corpus_id
     for i in range(0, len(matrix)):
         temp_vec = reduce_word_vec[i]
         temp_vec_lst = list(reduce_word_vec[i])
@@ -21,7 +23,6 @@ def kmeans(min_clusters, max_clusters, matrix, word_list, corpus_id):
         token_position[temp_token] = temp_vec_lst
 
     # save token's position to db
-    token_position["corpus_id"] = corpus_id
     insert("token_positions", token_position)
 
     K = range(min_clusters, max_clusters + 1)
@@ -40,7 +41,7 @@ def kmeans(min_clusters, max_clusters, matrix, word_list, corpus_id):
     # save infos about every k to db
     docu = {}
     docu["corpus_id"] = corpus_id
-    docu["clusters"] = K
+    docu["clusters"] = list(K)
     docu["elbow_values"] = mean_distortions
     docu["sc_scores"] = sc_scores
     insert("cluster_analysis", docu)
@@ -55,6 +56,7 @@ def kmeans(min_clusters, max_clusters, matrix, word_list, corpus_id):
     for i in range(0, bestK):
         temp = []
         clustered_result.append(temp)
+        representative_token.append('')
 
     for i in range(0, len(matrix)):
         cluster_index = (km_2d.labels_)[i]
@@ -77,14 +79,9 @@ def kmeans(min_clusters, max_clusters, matrix, word_list, corpus_id):
     # save theme info for every theme to db
     for i in range(0, bestK):
         docu = {"_id": corpus_id + "#" + str(i)}
+        docu["corpus_id"] = corpus_id
         docu["theme"] = representative_token[i]
         docu["tokens"] = clustered_result[i]
         insert("themes", docu)
 
     return return_data
-
-
-
-def calculate_distance(word1, word2):
-    distance = np.sqrt(np.sum(np.square(word1 - word2)))
-    return distance

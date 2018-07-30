@@ -1,18 +1,13 @@
 # word2vec model
 **/word2vec_model.bin
+**/trans_en_fr.pt
+
+# cache files
+.pickle
 
 # py compile file
 .pyc
 **/__pycache__/**
-
-# dependencies
-front/node_modules
-
-# testing
-front/coverage
-
-# production
-front/build
 
 # misc
 .DS_Store
@@ -25,4 +20,4 @@ front/npm-debug.log*
 front/yarn-debug.log*
 front/yarn-error.log*
 
-.idea
+:wq.idea

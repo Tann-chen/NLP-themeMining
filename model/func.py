@@ -1,13 +1,14 @@
 import nltk
 import numpy as np
 
+from nltk import sent_tokenize
 from nltk import wordpunct_tokenize
 from nltk.tag import pos_tag
 from nltk.corpus import stopwords
 from textblob import TextBlob
 from types import FunctionType
 
-IF_DEBUG = True
+IF_DEBUG = False
 
 def language_regonize(text):
     """
@@ -58,7 +59,7 @@ def sentence_tokenize(text, language='english'):
         print('ERROR:language inputed is out of support in sentence_tokenize()')
 
     if(IF_DEBUG):
-        print("[INFO] finish doing sentence_tokenize.)
+        print("[INFO] finish doing sentence_tokenize.")
 
     return lst_sentence
 
@@ -138,3 +139,8 @@ def phrases2vec(phrase, quantizator_func):
         result = np.divide(sum_vec,len(vector_lst))
 
     return result
+
+
+def calculate_distance(word1, word2):
+    distance = np.sqrt(np.sum(np.square(word1 - word2)))
+    return distance

@@ -8,10 +8,10 @@
 </head>
 <body>
 <!-- portal page -->
-<div id="portal_page" class="content-page">
-  <div id="corpus">
-    <div class="col-sm-offset-1 col-sm-10"><h4>Select One Corpus And Query:</h4></div>
-    <div id="corpus_content">
+<div id="portal_page" class="content-page" style="background-size: 2130px 1300px;">
+  <h2 style="text-align: center">Nature Language Processing for Mining Themes from Bilingual Reports</h2>
+  <div id="corpus" style="height: 85%; padding-top: 9%">
+    <div id="corpus_content" style="height: 100%; overflow-y: auto">
       ...
     </div>
   </div>
@@ -19,7 +19,8 @@
 
 <!-- analysis page -->
 <div id="analysis_page" class="content-page" style="display:none;left:100%;">
-  <div class="container">
+  <div>
+    <h5 style="text-align: center; width: 100%">Question: <span>what is the skills of leadership ? </span></h5>
     <div class="col-sm-6">
       <div id="pie_chart_node"></div>
     </div>
@@ -28,28 +29,29 @@
       <div id="bar_chart_node"></div>
     </div>
 
-    <div class="col-sm-12" style="border: solid black 1px">
-      <div id="carousel-example-generic" class="carousel slide" data-ride="carousel" style="height: 300px">
-        <!-- Indicators -->
-        <ol class="carousel-indicators">
-          <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
-          <li data-target="#carousel-example-generic" data-slide-to="1"></li>
-          <li data-target="#carousel-example-generic" data-slide-to="2"></li>
-        </ol>
+    <div class="container">
+      <div class="col-sm-12" style="border: solid black 1px">
+        <div id="carousel-example-generic" class="carousel slide" data-ride="carousel" style="height: 230px">
+          <!-- Indicators -->
+          <ol class="carousel-indicators">
+            <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+            <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+            <li data-target="#carousel-example-generic" data-slide-to="2"></li>
+          </ol>
 
-        <!-- Wrapper for slides -->
-        <div class="carousel-inner" role="listbox" id="carousel_contents">
+          <!-- Wrapper for slides -->
+          <div class="carousel-inner" role="listbox" id="carousel_contents"></div>
+
+          <!-- Controls -->
+          <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
         </div>
-
-        <!-- Controls -->
-        <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
-          <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-          <span class="sr-only">Previous</span>
-        </a>
-        <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
-          <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-          <span class="sr-only">Next</span>
-        </a>
       </div>
     </div>
   </div>
@@ -61,23 +63,24 @@
   </div>
 
   <div id="menus">
-    <div class="bottom-menus" style="bottom:90px">
+    <div class="bottom-menus" style="bottom:105px">
       <button type="button" data-toggle="modal" data-target="#point_chart_modal">
         <img src="img/icon_pc.png" width="30px" height="30px"/>
       </button>
     </div>
-    <div class="bottom-menus" style="bottom:155px;">
+    <div class="bottom-menus" style="bottom:40px;">
       <button type="button" data-toggle="modal" data-target="#line_chart_modal">
         <img src="img/icon_lc.png" width="30px" height="30px"/>
       </button>
     </div>
-    <div class="bottom-menus" style="bottom:25px;">
+    <div class="bottom-menus" style="bottom:170px;">
       <button type="button" data-toggle="modal" data-target="#heat_chart_modal">
         <img src="img/color_grid.png" width="30px" height="30px"/>
       </button>
     </div>
   </div>
 </div>
+
 
 <!-- point chart modal -->
 <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="LargeModalLabel1" id="point_chart_modal">
@@ -118,15 +121,20 @@
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                 aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title">Theme Silimilarities with Question</h4>
+        <h4 class="modal-title">Theme Silimilarities with Question :
+          <span id="query_question" style="color: gray"></span>
+        </h4>
       </div>
       <div class="modal-body" width="1500px" height="1000px">
         <div id="heat_chart_node"></div>
+        <span style="position: absolute; left: 390px; bottom: 20px">remote</span>
+        <span style="position: absolute; right: 400px; bottom: 20px">close</span>
       </div>
     </div>
   </div>
 </div>
 </body>
+<footer style="position: absolute; bottom: 0px; border: gray solid 1px; padding: 5px 10px;width: 100%; text-align: center">© Concordia University. All rights reserved.</footer>
 <script src='js/jquery-1.11.3.min.js'></script>
 <script src='js/bootstrap.min.js'></script>
 <script src="js/g2.min.js"></script>
@@ -187,6 +195,10 @@
         var window_width = window.innerWidth;
         var window_height = window.innerHeight;
 
+        var bkg_size = window_width + 'px ' + window_height + 'px';
+        console.log(bkg_size);
+        $("#portal_page").css("background-size", bkg_size);
+
         $("#point_chart_modal")
             .find(".modal-dialog")
             .css("width", window_width * 0.85 + "px");
@@ -204,29 +216,27 @@
     function loading_corpus_page() {
         $.ajax({
             type: "get",
-            url: "api/corpus",
+            url: "/api/corpus",
             dataType: "json",
             success: function (data) {
                 var corpus_content = $('#corpus_content');
                 corpus_content.empty();
 
                 var content = '';
-                for(var i in data){
+                for (var i in data) {
                     content += '<div id="' + data[i].corpus_id + '" class="corpus col-sm-offset-1 col-sm-10 well">\n' +
                         '        <div class="col-sm-12">\n' +
                         '          <b class="title">' + data[i].corpus_description + '</b>\n' +
-                        '          <span class="corpus-time">' + data[i].create_time + '</span>\n' +
+                        '          <span class="corpus-time">' + data[i].create_time.replace('T', ' ') + '</span>\n' +
                         '        </div>\n' +
                         '        <div class="col-sm-12" style="padding-top: 15px">\n' +
                         '          <ul class="col-sm-6">\n' +
-                        '            <li>Samples Size:<span>' + data[i].samples_size + '</span></li>\n' +
-                        '            <li>Sample Amount:<span>' + data[i].samples_num + '</span></li>\n' +
-                        '            <li>Sentence Amount:<span>' + data[i].sentences_num + '</span></li>\n' +
+                        '            <li>Samples Size: <span>' + data[i].samples_size + ' byte</span></li>\n' +
+                        '            <li>Sentence Amount: <span>' + data[i].sentences_num + ' sentences</span></li>\n' +
+                        '            <li>Question Amount: <span>' + data[i].queries_num + ' questions</span></li>\n' +
                         '          </ul>\n' +
                         '          <ul class="col-sm-6">\n' +
-                        '            <li>Tokens Amount:<span>' + data[i].tokens_num + '</span></li>\n' +
-                        '            <li>Queries Amount<span>' + data[i].queries_num + '</span></li>\n' +
-                        '            <li>Themes Amount:<span>' + data[i].themes_num + '</span></li>\n' +
+                        '            <li>Themes Amount: <span>' + data[i].themes_num + ' themes</span></li>\n' +
                         '          </ul>\n' +
                         '        </div>\n' +
                         '        <div class="queries col-sm-11 input-group"></div>\n' +
@@ -240,6 +250,8 @@
 
                     if (selected_corpus.prop('id') !== selected_corpus_id) {
                         selected_corpus_id = selected_corpus.prop('id');
+                        selected_corpus.parent().find('.corpus-focus').removeClass("corpus-focus");
+                        selected_corpus.addClass("corpus-focus");
                         attach_queries(selected_corpus.find('.queries'));
                     }
                 });
@@ -253,9 +265,11 @@
     function loading_analysis_page() {
         $.ajax({
             type: "get",
-            url: "api/analysis?corpus=" + selected_corpus_id,
+            url: "/api/analysis?corpus=" + selected_corpus_id,
             dataType: "json",
             success: function (resp) {
+                $("#pie_chart_node").empty();
+                $("#bar_chart_node").empty();
                 render_pie_chart(resp.pie_chart_data);
                 render_bar_chart(resp.bar_chart_data);
                 //loading_txt_container(resp.largest_theme);
@@ -270,21 +284,21 @@
     function attach_queries(selected_query_selection_dom) {
         $.ajax({
             type: "get",
-            url: "api/corpus/query?corpus=" + selected_corpus_id,
+            url: "/api/corpus/query?corpus=" + selected_corpus_id,
             dataType: "json",
             success: function (data) {
                 $(".queries").empty();
                 var content = '<select id="selected_query" class="form-control go_to">';
 
-                for (var i in data){
+                for (var i in data) {
                     content += '<option value="' + data[i].query_id + '">' + data[i].question + '</option>';
                 }
-                content += '</section>' +
-                    '<div class="input-group-btn">\n' +
-                    '   <button class="btn btn-default" type="button" style="outline: none;">Go</button>\n' +
-                    '</div>';
+                content += '</section>';
 
                 selected_query_selection_dom.append(content);
+                selected_query_selection_dom.append('<div class="input-group-btn">\n' +
+                    '                                        <button class="btn btn-default" type="button" style="outline: none;"> Go </button>\n' +
+                    '                                    </div>');
 
                 selected_query_selection_dom.find('button').click(function () {
                     var analysis_page = $("#analysis_page");
@@ -332,28 +346,34 @@
         });
 
         pie_chart.legend(false);
-        pie_chart.tooltip(false);
-        pie_chart
-            .intervalStack()
+        pie_chart.tooltip({
+            showTitle: false,
+            itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}</li>'
+        });
+
+        pie_chart.intervalStack()
             .position("percent")
             .color("item")
             .label("percent", {
                 formatter: function formatter(val, item) {
                     return item.point.item + ": " + val;
                 }
-            })
-            .style({
-                lineWidth: 1,
-                stroke: "#fff"
-            });
+            }).tooltip('item*percent', function (item, percent) {
+            percent = percent * 100 + '%';
+            return {
+                name: item,
+                value: percent
+            };
+        }).style({
+            lineWidth: 1,
+            stroke: "#fff"
+        });
 
         pie_chart.on("plotclick", function (selected) {
             var selected_theme = selected.data._origin.item;
-
-            console.log(selected_theme);
             $.ajax({
                 type: "get",
-                url: "/api/data/bar_chart?theme=" + selected_theme,
+                url: "/api/data/bar_chart?corpus=" + selected_corpus_id + "&theme=" + selected_theme,
                 dataType: "json",
                 success: function (resp) {
                     $("#bar_chart_node").empty();
@@ -382,6 +402,31 @@
                 max_count = data[i].count;
             }
         }
+
+        //axis: x
+        bar_chart.scale("token", {
+            alias: "Term frequency of words & phrases"
+        });
+
+        bar_chart.axis('token', {
+            line: {
+                stroke: '#000000'
+            },
+            label: null,
+            title: {
+                offset: 20,
+                textStyle: {
+                    autoRotate: false,
+                    textAlign: 'center',
+                    fill: '#666666',
+                    fontSize: '14',
+                    textBaseline: 'top'
+                }
+            }
+
+        });
+
+        //axis:y
         interv = 0;
         if (max_count < 20) {
             interv = 2;
@@ -390,11 +435,19 @@
         } else {
             interv = 10;
         }
+
         bar_chart.scale("count", {
+            alias: "term frequency",
             tickInterval: interv
         });
+
         bar_chart.interval().position("token*count");
         bar_chart.render();
+
+        bar_chart.on("plotclick", function (selected) {
+            var selected_token = selected.data._origin.token;
+            loading_txt_container(selected_corpus_id, selected_token);
+        })
     }
 
     function loading_lines_chart() {
@@ -416,29 +469,43 @@
                     forceFit: true,
                     height: window.innerHeight * 0.85
                 });
-                chart.source(dv, {
-                    num_cluster: {
-                        range: [0, 1]
-                    }
-                });
+                chart.source(dv);
+
                 chart.tooltip({
                     crosshairs: {
                         type: "line"
                     }
                 });
-                chart.axis("score", {
+
+                chart.axis("num_cluster", {
                     label: {
+                        autoRotate: false,
                         formatter: function formatter(val) {
                             return val;
                         }
+                    },
+                    title: {
+                        offset: 45,
+                        textStyle: {
+                            autoRotate: false,
+                            fill: '#666666',
+                            fontSize: '12',
+                            rotate: 0
+                        }
                     }
                 });
-                chart
-                    .line()
+
+                chart.scale("num_cluster", {
+                    alias: "Number of Cluster"
+                });
+
+                chart.tooltip(false);
+
+                chart.line()
                     .position("num_cluster*score")
                     .color("method");
-                chart
-                    .point()
+
+                chart.point()
                     .position("num_cluster*score")
                     .color("method")
                     .size(4)
@@ -447,6 +514,7 @@
                         stroke: "#fff",
                         lineWidth: 1
                     });
+
                 chart.render();
             },
             error: function (resp) {
@@ -455,12 +523,12 @@
         });
     }
 
-    function loading_txt_container(target_theme) {
+    function loading_txt_container(corpus_id, selected_token) {
         var carousel_contents = $("#carousel_contents");
 
         $.ajax({
             type: "get",
-            url: "/api/data/sentence?theme=" + target_theme,
+            url: "/api/data/sentence?corpus=" + corpus_id + "&token=" + selected_token,
             dataType: "json",
             success: function (data) {
                 carousel_contents.empty();
@@ -469,7 +537,7 @@
                 for (var i in data) {
                     one_page_content = one_page_content + "<p>" + data[i] + "</p>";
                     counter++;
-                    if (counter == 10) {
+                    if (counter === 10) {
                         one_page_content = one_page_content + "</div>";
                         carousel_contents.append(one_page_content);
                         one_page_content = '<div class="item txt-content">';
@@ -489,12 +557,15 @@
     }
 
     function loading_heat_chart() {
-        var selected_query = $('#selected_query').val();
+        var selected_query = $('#selected_query').val().replace('#', '::');  //because can not pass # in protocol
+
         $.ajax({
             type: "get",
             url: "/api/data/grid_chart?query=" + selected_query,
             dataType: "json",
             success: function (resp) {
+                $("#query_question").text(resp.question);
+
                 var grid_data = resp.similarity;
                 var lst_x = resp.themes;
                 var lst_y = resp.query_tokens;
@@ -525,16 +596,19 @@
                         values: lst_y
                     }
                 });
+
                 chart.axis("theme", {
-                    tickLine: null,
-                    grid: {
-                        align: "center",
-                        lineStyle: {
-                            lineWidth: 1,
-                            lineDash: null,
-                            stroke: "#f0f0f0"
+                    title: {
+                        autoRotate: false,
+                        offset: 12,
+                        textStyle: {
+                            textAlign: 'center',
+                            fill: '#404040',
+                            fontSize: '14',
+                            textBaseline: 'top'
                         }
-                    }
+                    },
+                    label: false
                 });
 
                 chart.axis("token", {
@@ -550,25 +624,31 @@
                     }
                 });
 
-                chart
-                    .polygon()
+                chart.tooltip({
+                    showTitle: false,
+                    itemTpl:
+                    '<li data-index={index} style="margin-bottom:4px;">' + '{name}' + '</li>'
+                });
+
+                chart.polygon()
                     .position("theme*token")
+                    .tooltip("theme*token", function (theme, token) {
+                        return {name: lst_x[theme]};
+                    })
                     .color(
                         "similarity",
-                        "#FFFFFF-#FAFFA8-#FFC838-#FF8C12-#FA541C-#F51D27"
+                        "#0050B3-#1890FF-#BAE7FF-#FAFFA8-#FFC838-#FF8C12-#FA541C-#F51D27"
                     )
-                    .label("similarity", {
-                        offset: -2,
-                        textStyle: {
-                            fill: "#fff",
-                            shadowBlur: 2,
-                            shadowColor: "rgba(0, 0, 0, .45)"
-                        }
-                    })
                     .style({
                         lineWidth: 1,
                         stroke: "#fff"
                     });
+
+                chart.legend("similarity", {
+                    selectedMode: 'single',
+                    slidable: false
+                });
+
                 chart.render();
             },
             error: function (resp) {
@@ -598,13 +678,11 @@
                     itemTpl:
                     '<li data-index={index} style="margin-bottom:4px;">' +
                     '<span style="background-color:{color};" class="g2-tooltip-marker"></span>' +
-                    "{name}<br/>" +
-                    "{value}" +
-                    "</li>"
+                    '{name}' +
+                    '</li>'
                 });
 
-                point_chart
-                    .point()
+                point_chart.point()
                     .position("x*y")
                     .color("theme")
                     .size(4)
@@ -612,10 +690,29 @@
                     .shape("circle")
                     .tooltip("token*x*y", function (token, x, y) {
                         return {
-                            name: token,
-                            value: x + ", " + y
+                            name: token
                         };
                     });
+
+                point_chart.axis("x",{
+                    label: null,
+                    line:{
+                        lineWidth: 1,
+                        stroke: 'black'
+                    },
+                    tickLine:null,
+                    grid:null
+                });
+                point_chart.axis("y",{
+                    label: null,
+                    line:{
+                        lineWidth: 1,
+                        stroke: 'black'
+                    },
+                    tickLine:null,
+                    grid:null
+                });
+
                 point_chart.render();
             },
             error: function (resp) {

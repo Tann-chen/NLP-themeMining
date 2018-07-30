@@ -6,13 +6,14 @@ import nltk
 import string
 
 from types import FunctionType
-from sentences_store import SentenceStore
+from sentence_store import SentenceStore
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 from french_lemmatizer.french_lefff_lemmatizer import FrenchLefffLemmatizer
 from time import gmtime, strftime
-from theme_cluster import calculate_distance
-
+from func import calculate_distance
+from googletrans import Translator
+from nmt_translator import translate as nmt_translator
 from data import save_pickle
 from data import read_pickle
 from data import save_txt
@@ -91,7 +92,8 @@ class TopTheme:
         corpus_size = 0
         sample_num = 0
         sample_details = []
-        self.corpus_id = strftime("%Y-%m-%dT%H:%M:%S", gmtime())
+        create_time = strftime("%Y-%m-%dT%H:%M:%S", gmtime())
+        self.corpus_id = create_time.replace('-', '').replace(':', '')
         # tools
         sentence_store = SentenceStore(self.corpus_id)
         en_lemmatizer = WordNetLemmatizer()
@@ -150,6 +152,7 @@ class TopTheme:
                                 self.indexer(token, sentence_index, fr_inversed_index)
                         # index for phrase
                         for t in phrases:
+                            t = t.replace('.', '')  # avoid db key exception
                             if language == 'english':
                                 self.indexer(t, sentence_index, en_inversed_index)
                             elif language == 'french':
@@ -195,39 +198,110 @@ class TopTheme:
                     self.word_vec_map[token] = vector
 
         # french
-        for token in lst_tokens_fr:
-            if ' ' not in token:
-                if IF_DEBUG:
-                    print("[DEBUG] " + token + " is a word")
-                # tanslate to engish
-                after_trans = translator.translate(token, dest='en')
-                vector = self.quantizator(after_trans.text)
-                if len(vector) > 0:
-                    matrix.append(vector)
-                    self.word_vec_map[token] = vector
-            else:
-                if IF_DEBUG:
-                    print("[DEBUG] " + token + " is a phrase")
+        fr_matrix_cache = []
+        fr_word_vec_map_cache = {}
 
-                after_trans = translator.translate(token, dest='en')
-                vector = self.phrase_quantizator(after_trans.text, self.quantizator)
-                if vector is not 0:
-                    matrix.append(vector)
-                    self.word_vec_map[token] = vector
+        try:
+            raise Exception("mock google translator failed ...")
+
+            for token in fr_lst_tokens:
+                if ' ' not in token:
+                    if IF_DEBUG:
+                        print("[DEBUG] " + token + " is a word")
+                    # tanslate to engish
+                    after_trans = translator.translate(token, dest='en')
+                    vector = self.quantizator(after_trans.text)
+                    if len(vector) > 0:
+                        #matrix.append(vector)
+                        #self.word_vec_map[token] = vector
+                        fr_matrix_cache.append(vector)
+                        fr_word_vec_map_cache[token] = vector
+                else:
+                    if IF_DEBUG:
+                        print("[DEBUG] " + token + " is a phrase")
+
+                    after_trans = translator.translate(token, dest='en')
+                    vector = self.phrase_quantizator(after_trans.text, self.quantizator)
+                    if vector is not 0:
+                        #matrix.append(vector)
+                        #self.word_vec_map[token] = vector
+                        fr_matrix_cache.append(vector)
+                        fr_word_vec_map_cache[token] = vector
+
+        except Exception:
+            print("\n\r[WARNING] GOOGLE translator failed, switch to use NMT translator...")
+            # empty cache
+            fr_matrix_cache = []
+            fr_word_vec_map_cache = {}
+            src_txt = ''
+
+            for token in fr_lst_tokens:
+                src_txt += token + '.\n'
+            save_txt(src_txt, 'cache/src.txt')
+            nmt_translator()
+            # after translate
+            pred_txt = read_txt('cache/pred.txt')
+            pred_txt.lower().replace('\n', '')
+            lst_token = pred_txt.split('.')
+
+            print("**" + str(len(lst_token)))
+            print("**" + str(len(fr_lst_tokens)))
+
+            for i in range(0, len(fr_lst_tokens)):
+                if i >= len(lst_token):
+                    break
+                origin_token = fr_lst_tokens[i]
+                after_trans = lst_token[i]
+
+                if ' ' not in after_trans:
+                    if IF_DEBUG:
+                        print("[DEBUG] " + origin_token + " is a word")
+
+                    vector = self.quantizator(after_trans)
+                    if len(vector) > 0:
+                        fr_matrix_cache.append(vector)
+                        fr_word_vec_map_cache[origin_token] = vector
+                else:
+                    if IF_DEBUG:
+                        print("[DEBUG] " + origin_token + " is a phrase")
+
+                    vector = self.phrase_quantizator(after_trans, self.quantizator)
+                    if vector is not 0:
+                        fr_matrix_cache.append(vector)
+                        fr_word_vec_map_cache[origin_token] = vector
+
+            print("[INFO] NMT translation done.")
+            del src_txt
+
+
+        # copy vector in cache to real
+        for vec in fr_matrix_cache:
+            matrix.append(vec)
+
+        for t, vec in fr_word_vec_map_cache.items():
+            self.word_vec_map[t] = vec
+
+        # release memory
+        del fr_matrix_cache
+        del fr_word_vec_map_cache
+        gc.collect()
 
         # theme clustering
         self.theme_clustered = self.theme_cluster(min_clusters, max_clusters, matrix, list(self.word_vec_map.keys()), self.corpus_id)
 
         # statistic
-        self.corpus_info["create_time"] = self.corpus_id   # use timestamp as corpus_id
-        self.corpus_info["last_update_time"] = self.corpus_id
-        self.corpus_info["sample_num"] = sample_num
-        self.corpus_info["sample_size"] = corpus_size
-        self.corpus_info["sample_details"] = sample_details
+        self.corpus_info["_id"] = self.corpus_id
+        self.corpus_info["create_time"] = create_time
+        self.corpus_info["last_update_time"] = create_time
+        self.corpus_info["samples_num"] = sample_num
+        self.corpus_info["samples_size"] = corpus_size
+        self.corpus_info["samples_details"] = sample_details
         self.corpus_info["tokens_num"] = len(en_lst_tokens) + len(fr_lst_tokens)
         self.corpus_info["themes_num"] = len(self.theme_clustered["clusters"])
         self.corpus_info["sentences_num"] = sentence_index + 1
         self.corpus_info["queries_num"] = 0
+        print("\n[INFO] the corpus has been indexed successfully.\n")
+        sentence_store.close()
 
     def query(self, question):
         punctuations = set(string.punctuation)
@@ -265,17 +339,18 @@ class TopTheme:
 
         # save query info to db
         docu = {}
-        docu["_id"] = self.corpus_id + '#' + self.corpus_info["queries_num"]
+        docu["_id"] = self.corpus_id + '#' + str(self.corpus_info["queries_num"])
         docu["corpus_id"] = self.corpus_id
         docu["question"] = question
         docu["query_tokens"] = question_removed_stopwords
         docu["themes"] = self.theme_clustered['representative']
         docu["similarity"] = similarity_container
-        insert("queries",docu)
+        insert("queries", docu)
 
         self.corpus_info["queries_num"] = self.corpus_info["queries_num"] + 1
         print("[INFO] saving query infos to DB successfully.")
 
-    def __del__(self):
+
+    def close(self):
         insert("corpus", self.corpus_info)
         print("[INFO] saving corpus infos to DB successfully.")

@@ -32,12 +32,3 @@ def TwoWordsSimilarity(word1, word2):
     """
     word_similarity = model.similarity(word1, word2)
     return word_similarity
-
-
-if __name__ == '__main__':
-    words_list = ['personal', 'important']
-    for w in words_list:
-        print("----- " + w +" -----")
-        vec = word2vector(w)
-        print(vec)
-        print("len of vector:" + str(len(vec)))

@@ -5,14 +5,14 @@ DB_NAME = "top-theme"
 
 conn = MongoClient(URL)
 db = conn[DB_NAME]
-lst_colletion = ["corpus", "queries", "themes", "cluster_analysis", "token_locations"]
+lst_colletion = ["corpus", "queries", "themes", "cluster_analysis", "token_positions", "raw_sentences"]
 
 
 def repo_find_documents(collection_name, dict_criteria):
     if not check_collection_name(collection_name):
         return 0;
     collection = db[collection_name]
-    documents = collection.find()
+    documents = collection.find(dict_criteria)
     return documents
 
 

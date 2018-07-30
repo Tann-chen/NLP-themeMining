@@ -14,7 +14,7 @@ def get_corpus_infos():
     lst_corpus = list(repo_find_all('corpus'))
     for one_corpus_doc in lst_corpus:
         entry = {}
-        entry["corpus_id"] = one_corpus_doc["create_time"].replace('-','').replace(':','')
+        entry["corpus_id"] = one_corpus_doc["_id"]
         entry["corpus_description"] = one_corpus_doc["description"]
         entry["create_time"] = one_corpus_doc["create_time"]
         entry["samples_size"] = one_corpus_doc["samples_size"]
@@ -32,7 +32,8 @@ def get_corpus_infos():
 def get_corpus_queries():
     selected_corpus_id = request.args.get('corpus')
     query_infos = []
-    criteria = {"corpus_id", selected_corpus_id}
+    criteria = {"corpus_id": selected_corpus_id}
+    print(selected_corpus_id)
     lst_query = list(repo_find_documents('queries', criteria));
     for one_query in lst_query:
         entry = {}
@@ -58,7 +59,7 @@ def get_analysis_data():
         fr_inversed_index = pickle.load(file)
 
     # read from db
-    criteria = {"corpus_id", selected_corpus_id}
+    criteria = {"corpus_id": selected_corpus_id}
     lst_theme = list(repo_find_documents("themes", criteria))
 
     for one_theme_doc in lst_theme:
@@ -150,7 +151,7 @@ def get_line_chart_data():
     line_data = []
     # get from database
     criteria = {"corpus_id": selected_corpus_id}
-    docu = list(repo_find_documents("cluster_analysis", criteria))
+    docu = list(repo_find_documents("cluster_analysis", criteria))[0]
     lst_cluster = docu["clusters"]
     lst_elbow_val = docu["elbow_values"]
     lst_sc_scores = docu["sc_scores"]
@@ -211,21 +212,26 @@ def get_related_sentence():
         fr_inversed_index = pickle.load(file)
 
     postings = service_get_postings_by_token(selected_token, en_inversed_index, fr_inversed_index)
+
     # remove duplicated & sort
-    postings = list(set(postings)).sort()
+    list(set(postings)).sort()
 
     # algorithem to reduce access of db
     for index in range(0, len(postings)):
         curr_min_id = postings[index]
         doc_id = math.floor(curr_min_id / CORPUS_DOC_STEP)
-        corpus_doc_id = selected_corpus_id + '#' + doc_id
-        docu = repo_find_document_by_id("corpus", corpus_doc_id)
-        max_doc_index = docu["max_index"]
+        corpus_doc_id = selected_corpus_id + '#' + str(doc_id)
+        docu = repo_find_document_by_id("raw_sentences", corpus_doc_id)
+        max_doc_index = int(docu["max_index"])
         dict_sentences = docu["content"]
         while postings[index] <= max_doc_index:
-            txt = dict_sentences.get(postings[index])   # index: sentence
+            txt = dict_sentences.get(str(postings[index]))   # index: sentence
             sentence_data.append(txt)
             index = index + 1
+            if index >= len(postings):
+                break
+        if index >= len(postings):
+            break
 
     del en_inversed_index
     del fr_inversed_index
@@ -235,10 +241,10 @@ def get_related_sentence():
 
 @app.route('/api/data/grid_chart',methods=['GET'])
 def get_grid_chart_data():
-    selected_query_id = request.args.get('query')
+    selected_query_id = request.args.get('query').replace('::', '#')
 
     grid_data = {}
-    docu = list(repo_find_document_by_id("queries", selected_query_id))[0]
+    docu = repo_find_document_by_id("queries", selected_query_id)
     grid_data["question"] = docu["question"]
     grid_data["query_tokens"] = docu["query_tokens"]
     grid_data["themes"] = docu["themes"]
