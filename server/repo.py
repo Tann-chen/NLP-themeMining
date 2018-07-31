@@ -5,7 +5,7 @@ DB_NAME = "top-theme"
 
 conn = MongoClient(URL)
 db = conn[DB_NAME]
-lst_colletion = ["corpus", "queries", "themes", "cluster_analysis", "token_positions", "raw_sentences"]
+lst_colletion = ["corpus", "queries", "themes", "cluster_analysis", "token_positions", "raw_sentences", "index_en", "index_fr"]
 
 
 def repo_find_documents(collection_name, dict_criteria):

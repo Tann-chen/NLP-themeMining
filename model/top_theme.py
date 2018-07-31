@@ -159,9 +159,19 @@ class TopTheme:
                                 self.indexer(t, sentence_index, fr_inversed_index)
 
         # persist the index
-        path = 'out/'
-        save_pickle(en_inversed_index, path + self.corpus_id + '_en.pickle')
-        save_pickle(fr_inversed_index, path + self.corpus_id + '_fr.pickle')
+        #path = 'out/'
+        #save_pickle(en_inversed_index, path + self.corpus_id + '_en.pickle')
+        #save_pickle(fr_inversed_index, path + self.corpus_id + '_fr.pickle')
+        insert_en_index_doc = {}
+        insert_en_index_doc["_id"] = self.corpus_id
+        insert_en_index_doc["inversed_index"] = en_inversed_index
+        insert("index_en", insert_en_index_doc)
+
+        # save fr index
+        insert_fr_index_doc = {}
+        insert_fr_index_doc["_id"] = self.corpus_id
+        insert_fr_index_doc["inversed_index"] = fr_inversed_index
+        insert("index_fr", insert_fr_index_doc)
 
         # get all tokens
         en_lst_tokens = list(en_inversed_index.keys())

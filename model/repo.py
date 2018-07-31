@@ -5,7 +5,7 @@ DB_NAME = "top-theme"
 
 conn = MongoClient(URL)
 db = conn[DB_NAME]
-lst_colletion = ["raw_sentences", "corpus", "queries", "themes", "cluster_analysis", "token_positions"]
+lst_colletion = ["raw_sentences", "corpus", "queries", "themes", "cluster_analysis", "token_positions", "index_en", "index_fr"]
 
 
 def insert(collection_name, data):

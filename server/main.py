@@ -8,6 +8,11 @@ from repo import repo_find_documents, repo_find_document_by_id, repo_find_all, r
 
 app = Flask(__name__, static_url_path='/static')
 
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+    
+
 @app.route('/api/corpus', methods=['GET'])
 def get_corpus_infos():
     corpus_infos = []
@@ -51,12 +56,17 @@ def get_analysis_data():
     # get pie chart data
     pie_data = []
 
-    # loading indexing
-    path = '../model/out/'
-    with open(path + selected_corpus_id + '_en.pickle', 'rb') as file:
-        en_inversed_index = pickle.load(file)
-    with open(path + selected_corpus_id + '_fr.pickle', 'rb') as file:
-        fr_inversed_index = pickle.load(file)
+    # loading indexing : upgrade in v2
+    # path = '../model/out/'
+    # with open(path + selected_corpus_id + '_en.pickle', 'rb') as file:
+    #     en_inversed_index = pickle.load(file)
+    # with open(path + selected_corpus_id + '_fr.pickle', 'rb') as file:
+    #     fr_inversed_index = pickle.load(file)
+    en_index_doc = repo_find_document_by_id("index_en", selected_corpus_id)
+    fr_index_doc = repo_find_document_by_id("index_fr", selected_corpus_id)
+    en_inversed_index = en_index_doc.get("inversed_index")
+    fr_inversed_index = fr_index_doc.get("inversed_index")
+
 
     # read from db
     criteria = {"corpus_id": selected_corpus_id}
@@ -117,11 +127,16 @@ def get_bar_chart_data():
     selected_theme = request.args.get('theme')
 
     # loading indexing
-    path = '../model/out/'
-    with open(path + selected_corpus_id + '_en.pickle', 'rb') as file:
-        en_inversed_index = pickle.load(file)
-    with open(path + selected_corpus_id + '_fr.pickle', 'rb') as file:
-        fr_inversed_index = pickle.load(file)
+    # path = '../model/out/'
+    # with open(path + selected_corpus_id + '_en.pickle', 'rb') as file:
+    #     en_inversed_index = pickle.load(file)
+    # with open(path + selected_corpus_id + '_fr.pickle', 'rb') as file:
+    #     fr_inversed_index = pickle.load(file)
+
+    en_index_doc = repo_find_document_by_id("index_en", selected_corpus_id)
+    fr_index_doc = repo_find_document_by_id("index_fr", selected_corpus_id)
+    en_inversed_index = en_index_doc.get("inversed_index")
+    fr_inversed_index = fr_index_doc.get("inversed_index")
 
     bar_data = []
     # get from database about every theme cover what words
@@ -205,11 +220,15 @@ def get_related_sentence():
     sentence_data = []
 
     # loading indexing
-    path = '../model/out/'
-    with open(path + selected_corpus_id + '_en.pickle', 'rb') as file:
-        en_inversed_index = pickle.load(file)
-    with open(path + selected_corpus_id + '_fr.pickle', 'rb') as file:
-        fr_inversed_index = pickle.load(file)
+    # path = '../model/out/'
+    # with open(path + selected_corpus_id + '_en.pickle', 'rb') as file:
+    #     en_inversed_index = pickle.load(file)
+    # with open(path + selected_corpus_id + '_fr.pickle', 'rb') as file:
+    #     fr_inversed_index = pickle.load(file)
+    en_index_doc = repo_find_document_by_id("index_en", selected_corpus_id)
+    fr_index_doc = repo_find_document_by_id("index_fr", selected_corpus_id)
+    en_inversed_index = en_index_doc.get("inversed_index")
+    fr_inversed_index = fr_index_doc.get("inversed_index")
 
     postings = service_get_postings_by_token(selected_token, en_inversed_index, fr_inversed_index)
 
@@ -254,4 +273,4 @@ def get_grid_chart_data():
 
 if __name__ == '__main__':
     CORPUS_DOC_STEP = 20
-    app.run()
+    app.run(host="0.0.0.0", port=8080)

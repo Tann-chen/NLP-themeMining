@@ -10,7 +10,7 @@ from word2vector import word2vector
 
 
 if __name__ == '__main__':
-    top_theme_obj = TopTheme("this is a test corpus")
+    top_theme_obj = TopTheme("Report Sample")
     top_theme_obj.set_language_regonizer(language_regonize)
     top_theme_obj.set_sentence_tokenizer(sentence_tokenize)
     top_theme_obj.set_theme_cluster(kmeans)
