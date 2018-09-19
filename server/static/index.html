@@ -20,7 +20,7 @@
 <!-- analysis page -->
 <div id="analysis_page" class="content-page" style="display:none;left:100%;">
   <div>
-    <h5 style="text-align: center; width: 100%">Question: <span>what is the skills of leadership ? </span></h5>
+    <h5 style="text-align: center; width: 100%">Question: <span id="title_question">what is the skills of leadership ? </span></h5>
     <div class="col-sm-6">
       <div id="pie_chart_node"></div>
     </div>
@@ -55,24 +55,24 @@
   </div>
 
   <div id="go-back">
-    <button type="button" id="go_back_btn">
+    <button type="button" id="go_back_btn" style="background:white">
       <img src="static/img/left_page.png" width="25px" height="25px"/>
     </button>
   </div>
 
   <div id="menus">
     <div class="bottom-menus" style="bottom:105px">
-      <button type="button" data-toggle="modal" data-target="#point_chart_modal">
+      <button type="button" data-toggle="modal" data-target="#point_chart_modal" style="background:white">
         <img src="static/img/icon_pc.png" width="30px" height="30px"/>
       </button>
     </div>
     <div class="bottom-menus" style="bottom:40px;">
-      <button type="button" data-toggle="modal" data-target="#line_chart_modal">
+      <button type="button" data-toggle="modal" data-target="#line_chart_modal" style="background:white">
         <img src="static/img/icon_lc.png" width="30px" height="30px"/>
       </button>
     </div>
     <div class="bottom-menus" style="bottom:170px;">
-      <button type="button" data-toggle="modal" data-target="#heat_chart_modal">
+      <button type="button" data-toggle="modal" data-target="#heat_chart_modal" style="background:white">
         <img src="static/img/color_grid.png" width="30px" height="30px"/>
       </button>
     </div>
@@ -268,6 +268,8 @@
             url: "/api/analysis?corpus=" + selected_corpus_id,
             dataType: "json",
             success: function (resp) {
+                var selected_question = $('#selected_query option:selected').text();
+                $('#title_question').text(selected_question);
                 $("#pie_chart_node").empty();
                 $("#bar_chart_node").empty();
                 render_pie_chart(resp.pie_chart_data);

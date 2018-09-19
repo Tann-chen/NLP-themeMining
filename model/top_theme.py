@@ -4,6 +4,7 @@ import gc
 import sys
 import nltk
 import string
+import traceback
 
 from types import FunctionType
 from sentence_store import SentenceStore
@@ -236,8 +237,10 @@ class TopTheme:
                         fr_matrix_cache.append(vector)
                         fr_word_vec_map_cache[token] = vector
 
-        except Exception:
+        except Exception as e:
             print("\n\r[WARNING] GOOGLE translator failed, switch to use NMT translator...")
+            traceback.print_exc()
+            print("------------")
             # empty cache
             fr_matrix_cache = []
             fr_word_vec_map_cache = {}
