@@ -1,10 +1,10 @@
 from pymongo import MongoClient
 
-URL = "mongodb://top-theme:uejDPgss76Cxr2VNzKOB19xnf50cWF8ZnHjIVBAJaknlQiBMtuN2vxTszOd7zIDOYkpHBPoPK3EB8hrCPIydfw==@top-theme.documents.azure.com:10255/?ssl=true&replicaSet=globaldb"
-DB_NAME = "top-theme"
-
+URL = "mongodb://mongo:27017/"
+DB_NAME = "test"
 conn = MongoClient(URL)
 db = conn[DB_NAME]
+
 lst_colletion = ["corpus", "queries", "themes", "cluster_analysis", "token_positions", "raw_sentences", "index_en", "index_fr"]
 
 

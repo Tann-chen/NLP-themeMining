@@ -7,9 +7,10 @@ from func import sentence_tokenize
 
 from theme_cluster import kmeans
 from word2vector import word2vector
-
+import time
 
 if __name__ == '__main__':
+    start_time = time.time()
     top_theme_obj = TopTheme("Report Sample")
     top_theme_obj.set_language_regonizer(language_regonize)
     top_theme_obj.set_sentence_tokenizer(sentence_tokenize)
@@ -22,3 +23,5 @@ if __name__ == '__main__':
     top_theme_obj.query("what is the skills of leadership?")
     top_theme_obj.query("what is the most influence to leadership?")
     top_theme_obj.close()
+    end_time = time.time()
+    print("[INFO] time consumed(sec) :" + str(end_time - start_time))

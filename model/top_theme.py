@@ -212,8 +212,6 @@ class TopTheme:
         fr_word_vec_map_cache = {}
 
         try:
-            raise Exception("mock google translator failed ...")
-
             for token in fr_lst_tokens:
                 if ' ' not in token:
                     if IF_DEBUG:
